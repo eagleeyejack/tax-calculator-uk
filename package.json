@@ -1,12 +1,12 @@
 {
-	"name": "uk-tax-calculator",
-	"version": "1.0.1",
+	"name": "tax-calculator-uk",
+	"version": "1.0.0",
 	"main": "./dist/tax-calculator.js",
 	"types": "./dist/src/Calculator.d.ts",
 	"license": "GNU v3",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/eagleeyejack/uk-tax-calculator"
+		"url": "https://github.com/eagleeyejack/tax-calculator-uk"
 	},
 	"scripts": {
 		"build": "webpack"

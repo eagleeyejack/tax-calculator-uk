@@ -7,11 +7,11 @@ This package allows you to calculate UK income tax based on a yearly salary. It 
 You can install the package via the NPM registry.
 
 ```
-npm install uk-tax-calculator
+npm install tax-calculator-uk
 ```
 
 ```
-yarn add uk-tax-calculator
+yarn add tax-calculator-uk
 ```
 
 ## Setup
@@ -19,7 +19,7 @@ yarn add uk-tax-calculator
 You will need to import the package into your project and create an options object with the following options.
 
 ```javascript
-import TaxCalculator from 'uk-tax-calculator';
+import TaxCalculator from 'tax-calculator-uk';
 
 const options = {
 	age: 26,
@@ -67,7 +67,7 @@ This option represents the percentage of their yearly salary the person is payin
 Returns a full breakdown of net income and tax deductions
 
 ```javascript
-import TaxCalculator from 'uk-tax-calculator';
+import TaxCalculator from 'tax-calculator-uk';
 
 const incomeTax = incomeTax.getTaxBreakdown()
 

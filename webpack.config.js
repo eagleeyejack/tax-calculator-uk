@@ -6,7 +6,7 @@ module.exports = {
 	output: {
 		path: path.resolve(__dirname, 'dist'),
 		filename: 'tax-calculator.js',
-		library: 'TaxCalculator',
+		library: 'UKTaxCalculator',
 		libraryTarget: 'umd',
     umdNamedDefine: true
 	},
