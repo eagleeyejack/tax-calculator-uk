@@ -7,7 +7,7 @@
 		exports["TaxCalculator"] = factory();
 	else
 		root["TaxCalculator"] = factory();
-})(this, function() {
+})(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -81,7 +81,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var rounded_1 = __webpack_require__(1);
+var Rounded_1 = __webpack_require__(1);
 var Settings_1 = __webpack_require__(2);
 var Calculator = function Calculator(grossIncome, options) {
     var taxSettings = Settings_1.TAX_SETTINGS;
@@ -158,7 +158,7 @@ var Calculator = function Calculator(grossIncome, options) {
     */
     var getTotalTaxDeductions = function getTotalTaxDeductions() {
         var totalTaxDeductions = getTotalIncomeTax() + getTotalStudentLoanRepayment() + getTotalYearlyNationalInsuranceWithAgeDeductions();
-        return rounded_1.getAmountRounded(totalTaxDeductions);
+        return Rounded_1.getAmountRounded(totalTaxDeductions);
     };
     /**
     * Returns the total allowances
@@ -182,32 +182,32 @@ var Calculator = function Calculator(grossIncome, options) {
     */
     var getTotalNetPayPerYear = function getTotalNetPayPerYear() {
         var totalNetPay = grossIncome - getTotalTaxDeductions() - pensionAmount;
-        return rounded_1.getAmountRounded(totalNetPay);
+        return Rounded_1.getAmountRounded(totalNetPay);
     };
     /**
     * Returns total net pay per month rounded to 2 decimal places
     */
     var getTotalNetPayPerMonth = function getTotalNetPayPerMonth() {
         var totalNetPayPerYear = getTotalNetPayPerYear();
-        return rounded_1.getAmountRounded(totalNetPayPerYear / 12);
+        return Rounded_1.getAmountRounded(totalNetPayPerYear / 12);
     };
     /**
     * Returns total net pay per week rounded to 2 decimal places
     */
     var getTotalNetPayPerWeek = function getTotalNetPayPerWeek() {
         var totalNetPayPerYear = getTotalNetPayPerYear();
-        return rounded_1.getAmountRounded(totalNetPayPerYear / 52);
+        return Rounded_1.getAmountRounded(totalNetPayPerYear / 52);
     };
     /**
     * Returns total net pay per day rounded to 2 decimal places
     */
     var getTotalNetPayPerDay = function getTotalNetPayPerDay() {
         var totalNetPayPerYear = getTotalNetPayPerYear();
-        return rounded_1.getAmountRounded(totalNetPayPerYear / 365);
+        return Rounded_1.getAmountRounded(totalNetPayPerYear / 365);
     };
     var getGrossWeekly = function getGrossWeekly() {
         var grossWeekly = grossIncome / 52;
-        return rounded_1.getAmountRounded(grossWeekly);
+        return Rounded_1.getAmountRounded(grossWeekly);
     };
     /**
     * Returns a break down of all income tax bands
@@ -232,7 +232,7 @@ var Calculator = function Calculator(grossIncome, options) {
     var getTotalIncomeTax = function getTotalIncomeTax() {
         var incomeTaxBreakdown = getIncomeTaxBreakdown();
         var totalIncomeTax = incomeTaxBreakdown.rate_0.tax + incomeTaxBreakdown.rate_20.tax + incomeTaxBreakdown.rate_40.tax + incomeTaxBreakdown.rate_45.tax;
-        return rounded_1.getAmountRounded(totalIncomeTax);
+        return Rounded_1.getAmountRounded(totalIncomeTax);
     };
     /**
     * Returns the total tax for tax band
@@ -241,18 +241,18 @@ var Calculator = function Calculator(grossIncome, options) {
     * @param totalIncome total income before reaching tax band (can be carry left over from last band)
     */
     var getTotalTaxForRateWithIncome = function getTotalTaxForRateWithIncome(taxRate, totalIncome) {
-        var incomeTaxRateDifference = taxRate.end === -1 ? totalIncome : rounded_1.getAmountRounded(taxRate.end - taxRate.start);
+        var incomeTaxRateDifference = taxRate.end === -1 ? totalIncome : Rounded_1.getAmountRounded(taxRate.end - taxRate.start);
         var totalMinusDifference = totalIncome - incomeTaxRateDifference;
         var carry = totalMinusDifference > 0 ? totalMinusDifference : 0;
         if (totalIncome > 0) {
             if (totalIncome >= incomeTaxRateDifference) {
                 return {
-                    tax: rounded_1.getAmountRounded(incomeTaxRateDifference * taxRate.rate),
+                    tax: Rounded_1.getAmountRounded(incomeTaxRateDifference * taxRate.rate),
                     carry: carry
                 };
             }
             return {
-                tax: rounded_1.getAmountRounded(totalIncome * taxRate.rate),
+                tax: Rounded_1.getAmountRounded(totalIncome * taxRate.rate),
                 carry: carry
             };
         }
@@ -282,14 +282,14 @@ var Calculator = function Calculator(grossIncome, options) {
     var getTotalWeeklyNationalInsurance = function getTotalWeeklyNationalInsurance() {
         var nationalInsuranceBreakdown = getNationalInsuranceBreakdown();
         var totalWeeklyNationalInsurance = nationalInsuranceBreakdown.rate_0.tax + nationalInsuranceBreakdown.rate_12.tax + nationalInsuranceBreakdown.rate_2.tax;
-        return rounded_1.getAmountRounded(totalWeeklyNationalInsurance);
+        return Rounded_1.getAmountRounded(totalWeeklyNationalInsurance);
     };
     /**
     * Returns total yearly national insurance
     */
     var getTotalYearlyNationalInsurance = function getTotalYearlyNationalInsurance() {
         var totalWeeklyNationalInsurance = getTotalWeeklyNationalInsurance() * 52;
-        return rounded_1.getAmountRounded(totalWeeklyNationalInsurance);
+        return Rounded_1.getAmountRounded(totalWeeklyNationalInsurance);
     };
     /**
     * Returns national insurance age related deductions
@@ -306,7 +306,7 @@ var Calculator = function Calculator(grossIncome, options) {
     */
     var getTotalYearlyNationalInsuranceWithAgeDeductions = function getTotalYearlyNationalInsuranceWithAgeDeductions() {
         var totalNationalInsurance = getTotalYearlyNationalInsurance() - getNationalInsuranceAgeRelatedDeductions();
-        return rounded_1.getAmountRounded(totalNationalInsurance);
+        return Rounded_1.getAmountRounded(totalNationalInsurance);
     };
     /**
     * Returns student loan replayment plan threshold
@@ -351,7 +351,7 @@ var Calculator = function Calculator(grossIncome, options) {
                 return 0;
             }
         var studentLoanRepaymentTotal = getIncomeAboveStudentLoanThreshold() * getStudentLoanRepaymentRate();
-        return rounded_1.getAmountRounded(studentLoanRepaymentTotal);
+        return Rounded_1.getAmountRounded(studentLoanRepaymentTotal);
     };
     calculator.getTaxBreakdown = function () {
         return {

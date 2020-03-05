@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-	entry: './src/TaxYears/19-20/Calculator.ts',
+	entry: './src/Calculator.ts',
 	output: {
 		path: path.resolve(__dirname, 'dist'),
 		filename: 'tax-calculator.js',

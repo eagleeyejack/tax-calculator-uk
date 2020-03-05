@@ -10,8 +10,8 @@ import {
 	NationalInsuranceBreakdown
 } from './Interfaces';
 
-import { getAmountRounded } from '../../utils/rounded';
-import { TAX_SETTINGS } from './Settings';
+import { getAmountRounded } from './utils/Rounded';
+import { TAX_SETTINGS } from './TaxYears/19-20/Settings';
 
 const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const taxSettings: TaxSettings = TAX_SETTINGS;

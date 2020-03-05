@@ -1,4 +1,4 @@
-import { TaxSettings } from './Interfaces';
+import { TaxSettings } from '../../Interfaces';
 
 // PAYE
 const payeBasic = 12500.0;
