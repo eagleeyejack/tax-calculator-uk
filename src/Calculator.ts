@@ -15,7 +15,7 @@ import { TAX_SETTINGS } from './TaxYears/19-20/Settings';
 
 const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const taxSettings: TaxSettings = TAX_SETTINGS;
-	let calculator: any = {};
+	let calculator = {} as any
 
 	calculator.grossIncome = grossIncome;
 	calculator.options = options;

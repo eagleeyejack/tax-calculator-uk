@@ -2,11 +2,16 @@ const path = require('path');
 
 module.exports = {
 	entry: './src/Calculator.ts',
+	mode: 'production',
 	output: {
 		path: path.resolve(__dirname, 'dist'),
 		filename: 'tax-calculator.js',
 		library: 'TaxCalculator',
-		libraryTarget: 'umd'
+		libraryTarget: 'umd',
+    umdNamedDefine: true
+	},
+	resolve: {
+		extensions: [ '.ts', '.json', '.js' ]
 	},
 	module: {
 		rules: [
@@ -17,8 +22,15 @@ module.exports = {
 					{
 						loader: 'babel-loader',
 						options: {
-							presets: 'es2015',
-							plugins: [ 'transform-object-assign' ]
+							presets: [['@babel/preset-env',
+								{
+									"targets": {
+										"chrome": "58",
+										"ie": "11"
+									}
+								}
+							]],
+							plugins: ['@babel/plugin-transform-object-assign']
 						}
 					},
 					{
@@ -33,15 +45,12 @@ module.exports = {
 					{
 						loader: 'babel-loader',
 						options: {
-							presets: 'es2015',
-							plugins: [ 'transform-object-assign' ]
+							presets: ['@babel/preset-env'],
+							plugins: ['@babel/plugin-transform-object-assign']
 						}
 					}
 				]
 			}
 		]
-	},
-	resolve: {
-		extensions: [ '.ts', '.json', '.js' ]
 	}
 };
