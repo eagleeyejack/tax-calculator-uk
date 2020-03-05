@@ -84,13 +84,91 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var Settings_1 = __webpack_require__(1);
-var Calculator = function Calculator(grossIncome) {
+var Calculator = function Calculator(grossIncome, options) {
     var taxSettings = Settings_1.TAX_SETTINGS;
-    var options = {
-        age: 30,
-        studentLoanPlan: 0 /* NO_PLAN */
-        , blind: false,
-        pensionContributions: 0.0
+    var calculator = {};
+    console.log(grossIncome, options);
+    // calculator.grossIncome = grossIncome;
+    // calculator.options = options;
+    /**
+    * Returns the age related contributions
+    */
+    var getAgeRelatedContributions = function getAgeRelatedContributions() {
+        if (options.age < 65) {
+            return 0;
+        }
+        if (options.age < 75) {
+            return taxSettings.allowance.basic - taxSettings.allowance.age_65_74;
+        }
+        return taxSettings.allowance.basic - taxSettings.allowance.age_75_over;
+    };
+    /**
+    * Returns the age related taper deductions
+    */
+    var getAgeRelatedTaperDeductions = function getAgeRelatedTaperDeductions() {
+        var incomeMinusTaperThreshold = grossIncome - taxSettings.allowance.thresholds.taper;
+        if (incomeMinusTaperThreshold < 0) {
+            return 0;
+        }
+        var halfIncomeMinusTaperThreshold = incomeMinusTaperThreshold / 2;
+        var ageRelatedContributions = getAgeRelatedContributions();
+        if (halfIncomeMinusTaperThreshold > ageRelatedContributions) {
+            return ageRelatedContributions;
+        }
+        return halfIncomeMinusTaperThreshold;
+    };
+    /**
+    * Returns the total taper deductions
+    */
+    var getTaperDeductions = function getTaperDeductions() {
+        var incomeMinusPensionContributions = grossIncome - options.pensionContributions;
+        var incomeMinusPensionMinusTaperThreshold = incomeMinusPensionContributions - taxSettings.allowance.thresholds.taper;
+        if (incomeMinusPensionMinusTaperThreshold < 0) {
+            return 0;
+        }
+        var halfIncomeMinusPensionMinusTaperThreshold = incomeMinusPensionMinusTaperThreshold / 2;
+        var allowanceAfterAgeAdjust = getAllowanceAfterAgeAdjust();
+        if (halfIncomeMinusPensionMinusTaperThreshold > allowanceAfterAgeAdjust) {
+            return allowanceAfterAgeAdjust;
+        }
+        return halfIncomeMinusPensionMinusTaperThreshold;
+    };
+    /**
+    * Returns personal allowance after adjusting for age
+    */
+    var getAllowanceAfterAgeAdjust = function getAllowanceAfterAgeAdjust() {
+        var ageAllowance = taxSettings.allowance.basic + getAgeRelatedContributions();
+        return ageAllowance - getAgeRelatedTaperDeductions();
+    };
+    /**
+    * Returns the allowed personal allowance
+    */
+    var getPersonalAllowance = function getPersonalAllowance() {
+        return getAllowanceAfterAgeAdjust() - getTaperDeductions();
+    };
+    /**
+    * Returns blind person allowance
+    */
+    var getBlindAllowance = function getBlindAllowance() {
+        if (options.blind === false) {
+            return 0;
+        }
+        return taxSettings.allowance.blind;
+    };
+    /**
+    * Returns total tax deductions rounded to 2 decimal places
+    */
+    var getTotalTaxDeductions = function getTotalTaxDeductions() {
+        var totalTaxDeductions = getTotalIncomeTax() + getTotalStudentLoanRepayment() + getTotalYearlyNationalInsuranceWithAgeDeductions();
+        return getAmountRounded(totalTaxDeductions);
+    };
+    /**
+    * Returns two decimal number converted from original input float number
+    *
+    * @param amount floating number
+    */
+    var getAmountRounded = function getAmountRounded(amount) {
+        return Math.round(amount * 100) / 100;
     };
     /**
     * Returns total net pay per year rounded to 2 decimal places
@@ -120,76 +198,15 @@ var Calculator = function Calculator(grossIncome) {
         var totalNetPayPerYear = getTotalNetPayPerYear();
         return getAmountRounded(totalNetPayPerYear / 365);
     };
-    /**
-    * Returns the allowed personal allowance
-    */
-    var getPersonalAllowance = function getPersonalAllowance() {
-        return getAllowanceAfterAgeAdjust() - getTaperDeductions();
-    };
-    /**
-    * Returns blind person allowance
-    */
-    var getBlindAllowance = function getBlindAllowance() {
-        if (options.blind === false) {
-            return 0;
-        }
-        return taxSettings.allowance.blind;
+    var getGrossWeekly = function getGrossWeekly() {
+        var grossWeekly = grossIncome / 52;
+        return getAmountRounded(grossWeekly);
     };
     /**
     * Returns the total allowances
     */
     var getTotalAllowances = function getTotalAllowances() {
         return getPersonalAllowance() + getBlindAllowance();
-    };
-    /**
-    * Returns the age related contributions
-    */
-    var getAgeRelatedContributions = function getAgeRelatedContributions() {
-        if (options.age < 65) {
-            return 0;
-        }
-        if (options.age < 75) {
-            return taxSettings.allowance.basic - taxSettings.allowance.age_65_74;
-        }
-        return taxSettings.allowance.basic - taxSettings.allowance.age_75_over;
-    };
-    /**
-    * Returns the age related taper deductions
-    */
-    var getAgeRelatedTaperDeductions = function getAgeRelatedTaperDeductions() {
-        var incomeMinusTaperThreshold = grossIncome - taxSettings.allowance.thresholds.taper;
-        if (incomeMinusTaperThreshold < 0) {
-            return 0;
-        }
-        var halfIncomeMinusTaperThreshold = incomeMinusTaperThreshold / 2;
-        var ageRelatedContributions = getAgeRelatedContributions();
-        if (halfIncomeMinusTaperThreshold > ageRelatedContributions) {
-            return ageRelatedContributions;
-        }
-        return halfIncomeMinusTaperThreshold;
-    };
-    /**
-    * Returns personal allowance after adjusting for age
-    */
-    var getAllowanceAfterAgeAdjust = function getAllowanceAfterAgeAdjust() {
-        var ageAllowance = taxSettings.allowance.basic + getAgeRelatedContributions();
-        return ageAllowance - getAgeRelatedTaperDeductions();
-    };
-    /**
-    * Returns the total taper deductions
-    */
-    var getTaperDeductions = function getTaperDeductions() {
-        var incomeMinusPensionContributions = grossIncome - options.pensionContributions;
-        var incomeMinusPensionMinusTaperThreshold = incomeMinusPensionContributions - taxSettings.allowance.thresholds.taper;
-        if (incomeMinusPensionMinusTaperThreshold < 0) {
-            return 0;
-        }
-        var halfIncomeMinusPensionMinusTaperThreshold = incomeMinusPensionMinusTaperThreshold / 2;
-        var allowanceAfterAgeAdjust = getAllowanceAfterAgeAdjust();
-        if (halfIncomeMinusPensionMinusTaperThreshold > allowanceAfterAgeAdjust) {
-            return allowanceAfterAgeAdjust;
-        }
-        return halfIncomeMinusPensionMinusTaperThreshold;
     };
     /**
     * Returns the total taxable income
@@ -343,21 +360,6 @@ var Calculator = function Calculator(grossIncome) {
         return getAmountRounded(studentLoanRepaymentTotal);
     };
     /**
-    * Returns total tax deductions rounded to 2 decimal places
-    */
-    var getTotalTaxDeductions = function getTotalTaxDeductions() {
-        var totalTaxDeductions = getTotalIncomeTax() + getTotalStudentLoanRepayment() + getTotalYearlyNationalInsuranceWithAgeDeductions();
-        return getAmountRounded(totalTaxDeductions);
-    };
-    /**
-    * Returns two decimal number converted from original input float number
-    *
-    * @param amount floating number
-    */
-    var getAmountRounded = function getAmountRounded(amount) {
-        return Math.round(amount * 100) / 100;
-    };
-    /**
     * Change calculator options
     *
     * @param options Options for calculator
@@ -380,11 +382,11 @@ var Calculator = function Calculator(grossIncome) {
     /**
     * Returns gross income as weekly figure rounded to 2 decimal places
     */
-    var getGrossWeekly = function getGrossWeekly() {
+    calculator.getGrossWeekly = function () {
         var grossWeekly = grossIncome / 52;
         return getAmountRounded(grossWeekly);
     };
-    var getTaxBreakdown = function getTaxBreakdown() {
+    calculator.getTaxBreakdown = function () {
         return {
             netIncome: {
                 yearly: getTotalNetPayPerYear(),
@@ -403,7 +405,7 @@ var Calculator = function Calculator(grossIncome) {
             }
         };
     };
-    return grossIncome;
+    return calculator;
 };
 exports.default = Calculator;
 

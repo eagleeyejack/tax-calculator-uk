@@ -12,14 +12,103 @@ import {
 
 import { TAX_SETTINGS } from './Settings';
 
-const Calculator = (grossIncome: number) => {
+const Calculator = (grossIncome: any, options: any) => {
 	const taxSettings = TAX_SETTINGS;
+	let calculator: any = {};
 
-	let options: CalculatorOptions = {
-		age: 30,
-		studentLoanPlan: StudentLoanPlans.NO_PLAN,
-		blind: false,
-		pensionContributions: 0.0
+	console.log(grossIncome, options);
+
+	calculator.grossIncome = grossIncome;
+	calculator.options = options;
+
+	/**
+   * Returns the age related contributions
+   */
+	const getAgeRelatedContributions = (): number => {
+		if (options.age < 65) {
+			return 0;
+		}
+		if (options.age < 75) {
+			return taxSettings.allowance.basic - taxSettings.allowance.age_65_74;
+		}
+		return taxSettings.allowance.basic - taxSettings.allowance.age_75_over;
+	};
+
+	/**
+   * Returns the age related taper deductions
+   */
+	const getAgeRelatedTaperDeductions = (): number => {
+		let incomeMinusTaperThreshold: number = grossIncome - taxSettings.allowance.thresholds.taper;
+		if (incomeMinusTaperThreshold < 0) {
+			return 0;
+		}
+		let halfIncomeMinusTaperThreshold: number = incomeMinusTaperThreshold / 2;
+		let ageRelatedContributions: number = getAgeRelatedContributions();
+		if (halfIncomeMinusTaperThreshold > ageRelatedContributions) {
+			return ageRelatedContributions;
+		}
+		return halfIncomeMinusTaperThreshold;
+	};
+
+	/**
+   * Returns the total taper deductions
+   */
+	const getTaperDeductions = (): number => {
+		let incomeMinusPensionContributions: number = grossIncome - options.pensionContributions;
+		let incomeMinusPensionMinusTaperThreshold: number =
+			incomeMinusPensionContributions - taxSettings.allowance.thresholds.taper;
+		if (incomeMinusPensionMinusTaperThreshold < 0) {
+			return 0;
+		}
+		let halfIncomeMinusPensionMinusTaperThreshold: number = incomeMinusPensionMinusTaperThreshold / 2;
+		let allowanceAfterAgeAdjust: number = getAllowanceAfterAgeAdjust();
+		if (halfIncomeMinusPensionMinusTaperThreshold > allowanceAfterAgeAdjust) {
+			return allowanceAfterAgeAdjust;
+		}
+		return halfIncomeMinusPensionMinusTaperThreshold;
+	};
+
+	/**
+   * Returns personal allowance after adjusting for age
+   */
+	const getAllowanceAfterAgeAdjust = (): number => {
+		let ageAllowance: number = taxSettings.allowance.basic + getAgeRelatedContributions();
+		return ageAllowance - getAgeRelatedTaperDeductions();
+	};
+
+	/**
+   * Returns the allowed personal allowance
+   */
+	const getPersonalAllowance = (): number => {
+		return getAllowanceAfterAgeAdjust() - getTaperDeductions();
+	};
+
+	/**
+   * Returns blind person allowance
+   */
+	const getBlindAllowance = (): number => {
+		if (options.blind === false) {
+			return 0;
+		}
+		return taxSettings.allowance.blind;
+	};
+
+	/**
+   * Returns total tax deductions rounded to 2 decimal places
+   */
+	const getTotalTaxDeductions = (): number => {
+		let totalTaxDeductions: number =
+			getTotalIncomeTax() + getTotalStudentLoanRepayment() + getTotalYearlyNationalInsuranceWithAgeDeductions();
+		return getAmountRounded(totalTaxDeductions);
+	};
+
+	/**
+   * Returns two decimal number converted from original input float number
+   * 
+   * @param amount floating number
+   */
+	const getAmountRounded = (amount: number): number => {
+		return Math.round(amount * 100) / 100;
 	};
 
 	/**
@@ -54,84 +143,15 @@ const Calculator = (grossIncome: number) => {
 		return getAmountRounded(totalNetPayPerYear / 365);
 	};
 
-	/**
-   * Returns the allowed personal allowance
-   */
-	const getPersonalAllowance = (): number => {
-		return getAllowanceAfterAgeAdjust() - getTaperDeductions();
-	};
-
-	/**
-   * Returns blind person allowance
-   */
-	const getBlindAllowance = (): number => {
-		if (options.blind === false) {
-			return 0;
-		}
-		return taxSettings.allowance.blind;
+	const getGrossWeekly = (): number => {
+		let grossWeekly: number = grossIncome / 52;
+		return getAmountRounded(grossWeekly);
 	};
 
 	/**
    * Returns the total allowances
    */
-	const getTotalAllowances = (): number => {
-		return getPersonalAllowance() + getBlindAllowance();
-	};
-
-	/**
-   * Returns the age related contributions
-   */
-	const getAgeRelatedContributions = (): number => {
-		if (options.age < 65) {
-			return 0;
-		}
-		if (options.age < 75) {
-			return taxSettings.allowance.basic - taxSettings.allowance.age_65_74;
-		}
-		return taxSettings.allowance.basic - taxSettings.allowance.age_75_over;
-	};
-
-	/**
-   * Returns the age related taper deductions
-   */
-	const getAgeRelatedTaperDeductions = (): number => {
-		let incomeMinusTaperThreshold: number = grossIncome - taxSettings.allowance.thresholds.taper;
-		if (incomeMinusTaperThreshold < 0) {
-			return 0;
-		}
-		let halfIncomeMinusTaperThreshold: number = incomeMinusTaperThreshold / 2;
-		let ageRelatedContributions: number = getAgeRelatedContributions();
-		if (halfIncomeMinusTaperThreshold > ageRelatedContributions) {
-			return ageRelatedContributions;
-		}
-		return halfIncomeMinusTaperThreshold;
-	};
-
-	/**
-   * Returns personal allowance after adjusting for age
-   */
-	const getAllowanceAfterAgeAdjust = (): number => {
-		let ageAllowance: number = taxSettings.allowance.basic + getAgeRelatedContributions();
-		return ageAllowance - getAgeRelatedTaperDeductions();
-	};
-
-	/**
-   * Returns the total taper deductions
-   */
-	const getTaperDeductions = (): number => {
-		let incomeMinusPensionContributions: number = grossIncome - options.pensionContributions;
-		let incomeMinusPensionMinusTaperThreshold: number =
-			incomeMinusPensionContributions - taxSettings.allowance.thresholds.taper;
-		if (incomeMinusPensionMinusTaperThreshold < 0) {
-			return 0;
-		}
-		let halfIncomeMinusPensionMinusTaperThreshold: number = incomeMinusPensionMinusTaperThreshold / 2;
-		let allowanceAfterAgeAdjust: number = getAllowanceAfterAgeAdjust();
-		if (halfIncomeMinusPensionMinusTaperThreshold > allowanceAfterAgeAdjust) {
-			return allowanceAfterAgeAdjust;
-		}
-		return halfIncomeMinusPensionMinusTaperThreshold;
-	};
+	const getTotalAllowances = (): number => getPersonalAllowance() + getBlindAllowance();
 
 	/**
    * Returns the total taxable income
@@ -312,24 +332,6 @@ const Calculator = (grossIncome: number) => {
 	};
 
 	/**
-   * Returns total tax deductions rounded to 2 decimal places
-   */
-	const getTotalTaxDeductions = (): number => {
-		let totalTaxDeductions: number =
-			getTotalIncomeTax() + getTotalStudentLoanRepayment() + getTotalYearlyNationalInsuranceWithAgeDeductions();
-		return getAmountRounded(totalTaxDeductions);
-	};
-
-	/**
-   * Returns two decimal number converted from original input float number
-   * 
-   * @param amount floating number
-   */
-	const getAmountRounded = (amount: number): number => {
-		return Math.round(amount * 100) / 100;
-	};
-
-	/**
    * Change calculator options
    * 
    * @param options Options for calculator
@@ -355,12 +357,12 @@ const Calculator = (grossIncome: number) => {
 	/**
    * Returns gross income as weekly figure rounded to 2 decimal places
    */
-	const getGrossWeekly = (): number => {
+	calculator.getGrossWeekly = (): number => {
 		let grossWeekly: number = grossIncome / 52;
 		return getAmountRounded(grossWeekly);
 	};
 
-	const getTaxBreakdown = () => {
+	calculator.getTaxBreakdown = () => {
 		return {
 			netIncome: {
 				yearly: getTotalNetPayPerYear(),
@@ -384,7 +386,7 @@ const Calculator = (grossIncome: number) => {
 		};
 	};
 
-	return grossIncome;
+	return calculator;
 };
 
 export default Calculator;
