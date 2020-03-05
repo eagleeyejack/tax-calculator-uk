@@ -1,6 +1,6 @@
-# UK Tax Calculator (2019/20)
+# 💷 UK Tax Calculator (2019/20) 💷
 
-This package allows you to calculate UK income tax. It also gives you a detailed breakdown of each part of the tax calculations.
+This package allows you to calculate UK income tax based on a yearly salary. It also gives you a detailed breakdown of each part of the tax calculations.
 
 ## Installation
 
@@ -60,12 +60,10 @@ This option represents the student loan plan of the person you are calculating t
 ### blind - Boolean
 This options represents whether or not the person is blind. Extra tax allowances are allocated for blind individuals.
 
-#### pensionPercentage - Number
+### pensionPercentage - Number
 This option represents the percentage of their yearly salary the person is paying into a pension.
 
-## Methods
-
-### getTaxBreakdown
+## getTaxBreakdown
 Returns a full breakdown of net income and tax deductions
 
 ```javascript
@@ -127,3 +125,7 @@ Returns
 	}
 }
 ```
+
+🏴󠁧󠁢󠁷󠁬󠁳󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁮󠁩󠁲󠁿
+
+🚧 The figures are only used a rough estimation, happy to accept forks to improve accuracy of figures. 🚧
