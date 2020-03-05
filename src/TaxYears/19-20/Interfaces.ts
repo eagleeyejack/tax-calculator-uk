@@ -53,7 +53,7 @@ export interface CalculatorOptions {
 	age: number;
 	studentLoanPlan: StudentLoanPlans;
 	blind: boolean;
-	pensionContributions: number;
+	pensionPercentage: number;
 }
 
 export const enum StudentLoanPlans {

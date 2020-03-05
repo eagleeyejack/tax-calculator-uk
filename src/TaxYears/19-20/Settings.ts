@@ -2,7 +2,7 @@ import { TaxSettings } from './Interfaces';
 
 // PAYE
 const payeBasic = 12500.0;
-const payeMid = 50000.0;
+const payeMid = 37500.0;
 const payeHigh = 150000;
 
 // Allowance

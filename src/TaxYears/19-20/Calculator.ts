@@ -10,13 +10,12 @@ import {
 	NationalInsuranceBreakdown
 } from './Interfaces';
 
+import { getAmountRounded } from '../../utils/rounded';
 import { TAX_SETTINGS } from './Settings';
 
-const Calculator = (grossIncome: any, options: any) => {
-	const taxSettings = TAX_SETTINGS;
+const Calculator = (grossIncome: number, options: CalculatorOptions) => {
+	const taxSettings: TaxSettings = TAX_SETTINGS;
 	let calculator: any = {};
-
-	console.log(grossIncome, options);
 
 	calculator.grossIncome = grossIncome;
 	calculator.options = options;
@@ -54,7 +53,7 @@ const Calculator = (grossIncome: any, options: any) => {
    * Returns the total taper deductions
    */
 	const getTaperDeductions = (): number => {
-		let incomeMinusPensionContributions: number = grossIncome - options.pensionContributions;
+		let incomeMinusPensionContributions: number = grossIncome - grossIncome - grossIncome / 100 * 5;
 		let incomeMinusPensionMinusTaperThreshold: number =
 			incomeMinusPensionContributions - taxSettings.allowance.thresholds.taper;
 		if (incomeMinusPensionMinusTaperThreshold < 0) {
@@ -103,19 +102,30 @@ const Calculator = (grossIncome: any, options: any) => {
 	};
 
 	/**
-   * Returns two decimal number converted from original input float number
-   * 
-   * @param amount floating number
+   * Returns the total allowances
    */
-	const getAmountRounded = (amount: number): number => {
-		return Math.round(amount * 100) / 100;
+	const getTotalAllowances = (): number => getPersonalAllowance() + getBlindAllowance();
+
+	/**
+   * Pension amount 
+   */
+
+	const pensionAmount: number = (grossIncome - getTotalAllowances()) / 100 * options.pensionPercentage;
+
+	/**
+   * Returns the total taxable income
+   */
+	const getTotalTaxableIncome = (): number => {
+		let incomeMinusTotalAllowances: number = grossIncome - getTotalAllowances();
+
+		return incomeMinusTotalAllowances - pensionAmount;
 	};
 
 	/**
    * Returns total net pay per year rounded to 2 decimal places
    */
 	const getTotalNetPayPerYear = (): number => {
-		let totalNetPay: number = grossIncome - getTotalTaxDeductions() - options.pensionContributions;
+		let totalNetPay: number = grossIncome - getTotalTaxDeductions() - pensionAmount;
 		return getAmountRounded(totalNetPay);
 	};
 
@@ -146,19 +156,6 @@ const Calculator = (grossIncome: any, options: any) => {
 	const getGrossWeekly = (): number => {
 		let grossWeekly: number = grossIncome / 52;
 		return getAmountRounded(grossWeekly);
-	};
-
-	/**
-   * Returns the total allowances
-   */
-	const getTotalAllowances = (): number => getPersonalAllowance() + getBlindAllowance();
-
-	/**
-   * Returns the total taxable income
-   */
-	const getTotalTaxableIncome = (): number => {
-		let incomeMinusTotalAllowances: number = grossIncome - getTotalAllowances();
-		return incomeMinusTotalAllowances - options.pensionContributions;
 	};
 
 	/**
@@ -329,37 +326,6 @@ const Calculator = (grossIncome: any, options: any) => {
 		}
 		let studentLoanRepaymentTotal: number = getIncomeAboveStudentLoanThreshold() * getStudentLoanRepaymentRate();
 		return getAmountRounded(studentLoanRepaymentTotal);
-	};
-
-	/**
-   * Change calculator options
-   * 
-   * @param options Options for calculator
-   */
-	const setOptions = (options: CalculatorOptions) => {
-		options = Object.assign({}, options, options);
-	};
-
-	/**
-   * Returns the current calculator options
-   */
-	const getOptions = (): CalculatorOptions => {
-		return options;
-	};
-
-	/**
-   * Returns the current tax year settings
-   */
-	const getSettings = (): TaxSettings => {
-		return taxSettings;
-	};
-
-	/**
-   * Returns gross income as weekly figure rounded to 2 decimal places
-   */
-	calculator.getGrossWeekly = (): number => {
-		let grossWeekly: number = grossIncome / 52;
-		return getAmountRounded(grossWeekly);
 	};
 
 	calculator.getTaxBreakdown = () => {
