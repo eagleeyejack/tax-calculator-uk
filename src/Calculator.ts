@@ -15,10 +15,10 @@ import { TAX_SETTINGS } from './TaxYears/19-20/Settings';
 
 const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const taxSettings: TaxSettings = TAX_SETTINGS;
-	let calculator: any = {};
+	let calculator: any
 
-	calculator.grossIncome = grossIncome;
-	calculator.options = options;
+	console.log(grossIncome)
+
 
 	/**
    * Returns the age related contributions
