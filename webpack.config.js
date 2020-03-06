@@ -1,12 +1,13 @@
 const path = require('path');
 
+
 module.exports = {
 	entry: './src/Calculator.ts',
 	mode: 'production',
 	output: {
 		path: path.resolve(__dirname, 'dist'),
 		filename: 'tax-calculator.js',
-		library: 'UKTaxCalculator',
+		library: 'TaxCalculator',
 		libraryTarget: 'umd',
     umdNamedDefine: true
 	},
