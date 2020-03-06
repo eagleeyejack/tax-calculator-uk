@@ -9,6 +9,7 @@ module.exports = {
 		filename: 'tax-calculator.js',
 		library: 'TaxCalculator',
 		libraryTarget: 'umd',
+		globalObject: "this",
     umdNamedDefine: true
 	},
 	resolve: {
