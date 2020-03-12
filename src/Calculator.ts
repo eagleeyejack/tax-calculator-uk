@@ -11,11 +11,11 @@ import {
 } from './Interfaces';
 
 import { getAmountRounded } from './utils/Rounded';
-import { TAX_SETTINGS } from './TaxYears/19-20/Settings';
+import { TAX_SETTINGS } from './TaxYears/20-21/Settings';
 
 const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const taxSettings: TaxSettings = TAX_SETTINGS;
-	let calculator = {} as any
+	let calculator = {} as any;
 
 	calculator.grossIncome = grossIncome;
 	calculator.options = options;

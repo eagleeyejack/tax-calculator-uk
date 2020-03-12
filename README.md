@@ -1,4 +1,5 @@
-# 💷 UK Tax Calculator (2019/20) 💷
+# 💷 UK Tax Calculator (2020/21) 💷
+
 
 This package allows you to calculate UK income tax based on a yearly salary. It also gives you a detailed breakdown of each part of the tax calculations.
 
@@ -125,7 +126,6 @@ Returns
 	}
 }
 ```
-
-🏴󠁧󠁢󠁷󠁬󠁳󠁿🏴󠁧󠁢󠁥󠁮󠁧󠁿🏴󠁧󠁢󠁳󠁣󠁴󠁿🏴󠁧󠁢󠁮󠁩󠁲󠁿
+󠁧󠁢󠁮󠁩󠁲󠁿
 
 🚧 The figures are only used a rough estimation, happy to accept forks to improve accuracy of figures. 🚧
