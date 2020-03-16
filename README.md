@@ -107,15 +107,12 @@ Returns
 	"nationalInsurance": {
 		"rate_0": {
 		"tax": 0,
-		"carry": 987.8499999999999
 		},
 		"rate_12": {
-		"tax": 95.52,
-		"carry": 191.8499999999999
+		"tax": 4862.88,
 		},
 		"rate_2": {
-		"tax": 3.84,
-		"carry": 0
+		"tax": 199.52,
 		}
 	},
 	"studentLoan": {
