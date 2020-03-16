@@ -224,26 +224,63 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	};
 
 	/**
-   * Returns a breakdown for all national insurance bands
-   */
-	const getNationalInsuranceBreakdown = (): NationalInsuranceBreakdown => {
-		let grossWeeklyIncome: number = getGrossWeekly();
-		let nationalInsuranceBands: NationalInsurance = taxSettings.nationalInsurance;
-		let rate_0: TaxBreakdownItem = getTotalTaxForRateWithIncome(nationalInsuranceBands.rate_0, grossWeeklyIncome);
-		let rate_12: TaxBreakdownItem = getTotalTaxForRateWithIncome(nationalInsuranceBands.rate_12, rate_0.carry);
-		let rate_2: TaxBreakdownItem = getTotalTaxForRateWithIncome(nationalInsuranceBands.rate_2, rate_12.carry);
-		return {
-			rate_0,
-			rate_12,
-			rate_2
-		};
+ * Returns a breakdown for all national insurance using new method for budget 2020/2021
+ */
+
+	const getNewNationalInsuranceBreakdown = () => {
+		const taxableAmount = grossIncome - 9500;
+		const middle = 40524;
+
+		const higherAmount = taxableAmount - middle;
+
+		let rate_0: any;
+		let rate_12: any;
+		let rate_2: any;
+
+		if (higherAmount > 0) {
+			const lower = middle / 100 * 12;
+
+			const higher = higherAmount / 100 * 2;
+
+			rate_0 = {
+				tax: 0
+			};
+			rate_12 = {
+				tax: lower
+			};
+			rate_2 = {
+				tax: higher
+			};
+
+			return {
+				rate_0,
+				rate_12,
+				rate_2
+			};
+		} else {
+			rate_0 = {
+				tax: 0
+			};
+			rate_12 = {
+				tax: taxableAmount / 100 * 12
+			};
+			rate_2 = {
+				tax: 0
+			};
+
+			return {
+				rate_0,
+				rate_12,
+				rate_2
+			};
+		}
 	};
 
 	/**
    * Returns total weekly national insurance rounded to 2 decimal places
    */
 	const getTotalWeeklyNationalInsurance = (): number => {
-		let nationalInsuranceBreakdown: NationalInsuranceBreakdown = getNationalInsuranceBreakdown();
+		let nationalInsuranceBreakdown: NationalInsuranceBreakdown = getNewNationalInsuranceBreakdown();
 		let totalWeeklyNationalInsurance: number =
 			nationalInsuranceBreakdown.rate_0.tax +
 			nationalInsuranceBreakdown.rate_12.tax +
@@ -255,7 +292,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
    * Returns total yearly national insurance
    */
 	const getTotalYearlyNationalInsurance = (): number => {
-		let totalWeeklyNationalInsurance: number = getTotalWeeklyNationalInsurance() * 52;
+		let totalWeeklyNationalInsurance: number = getTotalWeeklyNationalInsurance();
 		return getAmountRounded(totalWeeklyNationalInsurance);
 	};
 
@@ -338,7 +375,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 			},
 			personalAllowance: getPersonalAllowance(),
 			paye: getIncomeTaxBreakdown(),
-			nationalInsurance: getNationalInsuranceBreakdown(),
+			nationalInsurance: getNewNationalInsuranceBreakdown(),
 			studentLoan: {
 				plan:
 
