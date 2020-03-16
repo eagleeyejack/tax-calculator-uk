@@ -60,7 +60,7 @@ export interface IncomeTaxBreakdown {
 }
 export interface TaxBreakdownItem {
     readonly tax: number;
-    readonly carry: number;
+    readonly carry?: number;
 }
 export interface NationalInsuranceBreakdown {
     readonly rate_0: TaxBreakdownItem;

@@ -2,14 +2,14 @@ import { TaxSettings } from '../../Interfaces';
 
 // PAYE
 const payeBasic = 12500.0;
-const payeMid = 50000.0 - payeBasic
+const payeMid = 50000.0 - payeBasic;
 const payeHigh = 150000;
 
 // Allowance
-const blind = 2450.0;
+const blind = 2500.0;
 
 // NI
-const niLow = 166.0;
+const niLow = 183.0;
 const niHigh = 962.0;
 
 export const TAX_SETTINGS: TaxSettings = {
