@@ -1,11 +1,10 @@
 # 💷 Tax Calculator UK (2020/21) 💷
 
-
-This package allows you to calculate UK income tax based on a yearly salary. It also gives you a detailed breakdown of each part of the tax calculations.
+This package give you an income tax breakdown based on a yearly salary.
 
 ## Installation
 
-You can install the package via the NPM registry.
+You can install the package via npm or yarn.
 
 ```
 npm install tax-calculator-uk
