@@ -79,7 +79,13 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
    * Returns the allowed personal allowance
    */
 	const getPersonalAllowance = (): number => {
-		return getAllowanceAfterAgeAdjust() - getTaperDeductions();
+		if (grossIncome < 100000) {
+			return getAllowanceAfterAgeAdjust() - getTaperDeductions();
+		} else if (grossIncome > 100000 && grossIncome <= 125000) {
+			return 12500 - (grossIncome - 100000) / 2;
+		} else if (grossIncome >= 125001) {
+			return 0;
+		}
 	};
 
 	/**
