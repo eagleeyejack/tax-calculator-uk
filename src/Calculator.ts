@@ -79,7 +79,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
    * Returns the allowed personal allowance
    */
 	const getPersonalAllowance = (): number => {
-		if (grossIncome < 100000) {
+		if (grossIncome <= 100000) {
 			return getAllowanceAfterAgeAdjust() - getTaperDeductions();
 		} else if (grossIncome > 100000 && grossIncome <= 125000) {
 			return 12500 - (grossIncome - 100000) / 2;
@@ -113,7 +113,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 	const getTotalAllowances = (): number => getPersonalAllowance() + getBlindAllowance();
 
 	/**
-   * Pension amount 
+   * Pension amount
    */
 
 	const pensionAmount: number = (grossIncome - getTotalAllowances()) / 100 * options.pensionPercentage;
@@ -197,7 +197,7 @@ const Calculator = (grossIncome: number, options: CalculatorOptions) => {
 
 	/**
    * Returns the total tax for tax band
-   * 
+   *
    * @param taxRate tax rate from settings
    * @param totalIncome total income before reaching tax band (can be carry left over from last band)
    */
