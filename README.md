@@ -133,4 +133,4 @@ Returns
 
 󠁧󠁢󠁮󠁩󠁲󠁿
 
-🚧 The figures are only used a rough estimation, happy to accept forks to improve accuracy of figures. 🚧
+🚧 The figures are only meant to be used as a rough estimation, happy to accept forks to improve accuracy of figures. 🚧
