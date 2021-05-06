@@ -1,4 +1,4 @@
-# 💷 Tax Calculator UK (2020/21) 💷
+# 💷 Tax Calculator UK (2021/22) 💷
 
 This package give you an income tax breakdown based on a yearly salary.
 
@@ -19,13 +19,13 @@ yarn add tax-calculator-uk
 You will need to import the package into your project and create an options object with the following options.
 
 ```javascript
-import TaxCalculator from 'tax-calculator-uk';
+import TaxCalculator from "tax-calculator-uk"
 
 const options = {
 	age: 26,
 	studentLoanPlan: 1,
 	blind: false,
-	pensionPercentage: 5,
+	pensionPercentage: 5
 }
 
 const incomeTax = TaxCalculator(60000, options)
@@ -34,9 +34,11 @@ const incomeTax = TaxCalculator(60000, options)
 ## Options
 
 ### age - Number
+
 This options reprents the age of the person you are calculating the income tax form.
 
 ### studentLoanPlan - Number
+
 This option represents the student loan plan of the person you are calculating the income tax for.
 
 ```
@@ -46,36 +48,42 @@ This option represents the student loan plan of the person you are calculating t
 ```
 
 **Plan 1**
+
 - English and Welsh students who started before 1 September 2012
 - all Scottish and Northern Irish students
-- You pay back 9% of your income over the minimum amount of **£17,775**.
+- You pay back 9% of your income over the minimum amount of **£19,895**.
 
 **Plan 2**
+
 - Plan 2 is for English and Welsh students who started on or after 1 September 2012.
-- You pay back 9% of your income over the minimum amount of **£21,000**.
+- You pay back 9% of your income over the minimum amount of **£27,295**.
 
 **No plan**
+
 - No repayments will be made as you have no student loan
 
 ### blind - Boolean
+
 This options represents whether or not the person is blind. Extra tax allowances are allocated for blind individuals.
 
 ### pensionPercentage - Number
+
 This option represents the percentage of their yearly salary the person is paying into a pension.
 
 ## getTaxBreakdown
+
 Returns a full breakdown of net income and tax deductions
 
 ```javascript
-import TaxCalculator from 'tax-calculator-uk';
+import TaxCalculator from "tax-calculator-uk"
 
 const incomeTax = incomeTax.getTaxBreakdown()
 
-console.log(incomeTax);
+console.log(incomeTax)
 ```
 
-
 Returns
+
 ```json
 {
 	"netIncome": {
@@ -87,31 +95,31 @@ Returns
 	"personalAllowance": 12500,
 	"paye": {
 		"rate_0": {
-		"tax": 0,
-		"carry": 45125
+			"tax": 0,
+			"carry": 45125
 		},
 		"rate_20": {
-		"tax": 7500,
-		"carry": 7625
+			"tax": 7500,
+			"carry": 7625
 		},
 		"rate_40": {
-		"tax": 3050,
-		"carry": 0
+			"tax": 3050,
+			"carry": 0
 		},
 		"rate_45": {
-		"tax": 0,
-		"carry": 0
+			"tax": 0,
+			"carry": 0
 		}
 	},
 	"nationalInsurance": {
 		"rate_0": {
-		"tax": 0,
+			"tax": 0
 		},
 		"rate_12": {
-		"tax": 4862.88,
+			"tax": 4862.88
 		},
 		"rate_2": {
-		"tax": 199.52,
+			"tax": 199.52
 		}
 	},
 	"studentLoan": {
@@ -122,6 +130,7 @@ Returns
 	}
 }
 ```
+
 󠁧󠁢󠁮󠁩󠁲󠁿
 
 🚧 The figures are only used a rough estimation, happy to accept forks to improve accuracy of figures. 🚧

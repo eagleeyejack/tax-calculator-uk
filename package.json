@@ -1,6 +1,6 @@
 {
 	"name": "tax-calculator-uk",
-	"version": "1.0.8",
+	"version": "1.0.10",
 	"main": "./dist/tax-calculator.js",
 	"types": "./dist/src/Calculator.d.ts",
 	"license": "GNU v3",
@@ -12,9 +12,10 @@
 		"build": "webpack"
 	},
 	"dependencies": {
-		"@babel/core": "^7.8.7",
+		"@babel/compat-data": "7.9.0",
+		"@babel/core": "^7.14.0",
 		"@babel/plugin-transform-object-assign": "^7.8.3",
-		"@babel/preset-env": "^7.8.7",
+		"@babel/preset-env": "^7.14.1",
 		"@types/node": "^13.7.7",
 		"@types/object-assign": "^4.0.30"
 	},

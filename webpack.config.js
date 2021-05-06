@@ -1,19 +1,18 @@
-const path = require('path');
-
+const path = require("path")
 
 module.exports = {
-	entry: './src/Calculator.ts',
-	mode: 'production',
+	entry: "./src/Calculator.ts",
+	mode: "production",
 	output: {
-		path: path.resolve(__dirname, 'dist'),
-		filename: 'tax-calculator.js',
-		library: 'TaxCalculator',
-		libraryTarget: 'umd',
+		path: path.resolve(__dirname, "dist"),
+		filename: "tax-calculator.js",
+		library: "TaxCalculator",
+		libraryTarget: "umd",
 		globalObject: "this",
-    umdNamedDefine: true
+		umdNamedDefine: true
 	},
 	resolve: {
-		extensions: [ '.ts', '.json', '.js' ]
+		extensions: [".ts", ".json", ".js"]
 	},
 	module: {
 		rules: [
@@ -22,21 +21,24 @@ module.exports = {
 				exclude: /node_modules/,
 				use: [
 					{
-						loader: 'babel-loader',
+						loader: "babel-loader",
 						options: {
-							presets: [['@babel/preset-env',
-								{
-									"targets": {
-										"chrome": "58",
-										"ie": "11"
+							presets: [
+								[
+									"@babel/preset-env",
+									{
+										targets: {
+											chrome: "58",
+											ie: "11"
+										}
 									}
-								}
-							]],
-							plugins: ['@babel/plugin-transform-object-assign']
+								]
+							],
+							plugins: ["@babel/plugin-transform-object-assign"]
 						}
 					},
 					{
-						loader: 'ts-loader'
+						loader: "ts-loader"
 					}
 				]
 			},
@@ -45,14 +47,14 @@ module.exports = {
 				exclude: /node_modules/,
 				use: [
 					{
-						loader: 'babel-loader',
+						loader: "babel-loader",
 						options: {
-							presets: ['@babel/preset-env'],
-							plugins: ['@babel/plugin-transform-object-assign']
+							presets: ["@babel/preset-env"],
+							plugins: ["@babel/plugin-transform-object-assign"]
 						}
 					}
 				]
 			}
 		]
 	}
-};
+}
