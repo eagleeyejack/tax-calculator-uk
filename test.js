@@ -113,33 +113,38 @@ if (!threw) fail++;
 // ---- Scotland ----
 const scot = (plan = 0) => ({ age: 30, studentLoanPlan: plan, blind: false, pensionPercentage: 0, region: "scotland" });
 
-// 26-27 Scotland £60k: 3967@19% + 12989@20% + 14136@21% + 16337@42% = 13181.63
+// 26-27 Scotland £60k: 3967@19% + 12989@20% + 14136@21% + 16338@42% = 13182.05
 r = Calculator(60000, scot(), "2026/27").getTaxBreakdown();
 check("Scot 26-27 region", r.region === "scotland" ? 1 : 0, 1);
 check("Scot 26-27 bands", r.bands.length, 6);
-check("Scot 26-27 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13181.63);
+check("Scot 26-27 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13182.05);
 check("Scot 26-27 starter", r.paye.starter.tax, 753.73);
-check("Scot 26-27 net", r.netIncome.yearly, 43607.77);
+check("Scot 26-27 net", r.netIncome.yearly, 43607.35);
 
-// 26-27 Scotland £30k: starter 753.73 + basic 2597.8 + intermediate 99.33
+// 26-27 Scotland £30k: starter 753.73 + basic 2597.8 + intermediate 99.54
 r = Calculator(30000, scot(), "2026/27").getTaxBreakdown();
-check("Scot 26-27 £30k tax", r.bands.reduce((s, b) => s + b.tax, 0), 3450.86);
-check("Scot 26-27 £30k net", r.netIncome.yearly, 25154.74);
+check("Scot 26-27 £30k tax", r.bands.reduce((s, b) => s + b.tax, 0), 3451.07);
+check("Scot 26-27 £30k net", r.netIncome.yearly, 25154.53);
 
-// 22-23 Scotland £60k: 410.97 + 2191.20 + 3774.54 + 6698.17 = 13074.88
+// 22-23 Scotland £60k: 410.78 + 2191.20 + 3774.54 + 6698.58 = 13075.10
 r = Calculator(60000, scot(), "2022/23").getTaxBreakdown();
-check("Scot 22-23 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13074.88);
-check("Scot 22-23 net", r.netIncome.yearly, 41847.04);
+check("Scot 22-23 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13075.1);
+check("Scot 22-23 net", r.netIncome.yearly, 41846.82);
 
-// 17-18 Scotland £44k (HRT £43k vs rUK £45k): 6300.20 + 399.60 = 6699.80
+// 17-18 Scotland £44k (HRT £43k vs rUK £45k): 6300 + 400 = 6700
 r = Calculator(44000, scot(), "2017/18").getTaxBreakdown();
-check("Scot 17-18 tax", r.bands.reduce((s, b) => s + b.tax, 0), 6699.8);
-check("Scot 17-18 net", r.netIncome.yearly, 32999.88);
+check("Scot 17-18 tax", r.bands.reduce((s, b) => s + b.tax, 0), 6700);
+check("Scot 17-18 net", r.netIncome.yearly, 32999.68);
 
-// 24-25 Scotland £100k hits the advanced band: total 30763.35
+// 24-25 Scotland £100k hits the advanced band: total 30763.80
 r = Calculator(100000, scot(), "2024/25").getTaxBreakdown();
-check("Scot 24-25 advanced", r.paye.advanced.tax, 11249.55);
-check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30763.35);
+check("Scot 24-25 advanced", r.paye.advanced.tax, 11250);
+check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30763.8);
+
+// Scotland with blind allowance: bands anchor to the effective allowance
+r = Calculator(130000, { age: 30, studentLoanPlan: 0, blind: true, pensionPercentage: 0, region: "scotland" }, "2026/27").getTaxBreakdown();
+check("Scot blind £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48851.45);
+check("Scot blind £130k net", r.netIncome.yearly, 76537.95);
 
 // Default region stays England/Wales/NI with legacy paye buckets
 r = Calculator(60000, base()).getTaxBreakdown();

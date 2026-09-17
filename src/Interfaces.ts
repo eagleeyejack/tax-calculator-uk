@@ -1,67 +1,18 @@
-export interface TaxSettings {
-	readonly year: string;
-	readonly allowance: Allowance;
-	readonly incomeTax: IncomeTax;
-	readonly nationalInsurance: NationalInsurance;
-	readonly studentLoan: StudentLoan;
-	readonly scotland: ScottishBand[];
-}
-
-/** A Scottish income tax band on absolute income (half-open: start inclusive, end exclusive, -1 = no upper limit). */
-export interface ScottishBand {
-	readonly name: string;
-	readonly start: number;
-	readonly end: number;
-	readonly rate: number;
-}
-
 export type Region = "england-wales-ni" | "scotland";
 
-export interface Allowance {
-	readonly basic: number;
-	readonly age_65_74: number;
-	readonly age_75_over: number;
+/** Compact per-year figures. See years.ts for the encoding. */
+export interface YearData {
+	readonly pa: number;
+	readonly bb: number;
+	readonly at: number;
 	readonly blind: number;
-	readonly thresholds: AllowanceThresholds;
-}
-
-export interface AllowanceThresholds {
-	readonly age: number;
-	readonly taper: number;
-}
-
-export interface IncomeTax {
-	readonly rate_0: TaxRate;
-	readonly rate_20: TaxRate;
-	readonly rate_40: TaxRate;
-	readonly rate_45: TaxRate;
-}
-
-export interface TaxRate {
-	readonly start: number;
-	readonly end: number;
-	readonly rate: number;
-}
-
-export interface NationalInsurance {
-	readonly pensionAge: number;
-	readonly rate_0: TaxRate;
-	/** Main employee rate (8% in 2026/27). Name kept as rate_12 for backward compatibility. */
-	readonly rate_12: TaxRate;
-	readonly rate_2: TaxRate;
-}
-
-export interface StudentLoan {
-	readonly plan_1: StudentLoanPlanSetting;
-	readonly plan_2: StudentLoanPlanSetting;
-	readonly plan_4: StudentLoanPlanSetting;
-	readonly plan_5: StudentLoanPlanSetting;
-	readonly postgraduate: StudentLoanPlanSetting;
-}
-
-export interface StudentLoanPlanSetting {
-	readonly threshold: number;
-	readonly rate: number;
+	/** [mainRate, primaryThreshold, upperEarningsLimit]; upper rate always 2%. */
+	readonly ni: [number, number, number];
+	readonly penAge: number;
+	/** [plan1, plan2, plan4, plan5, postgrad, plan5rate]; postgrad always 6%, other undergrad plans 9%. */
+	readonly sl: [number, number, number, number, number, number];
+	/** [name, width, rate][] slices of taxable income; width 0 = remainder. */
+	readonly scot: [string, number, number][];
 }
 
 export interface CalculatorOptions {
@@ -75,7 +26,6 @@ export interface CalculatorOptions {
 
 /**
  * Numeric values 0/1/2 are unchanged from v1 so existing callers keep working.
- * New in v2: PLAN_4 (3), PLAN_5 (4), POSTGRADUATE (5).
  */
 export const enum StudentLoanPlans {
 	NO_PLAN = 0,
@@ -86,16 +36,16 @@ export const enum StudentLoanPlans {
 	POSTGRADUATE = 5
 }
 
+export interface TaxBreakdownItem {
+	readonly tax: number;
+	readonly carry?: number;
+}
+
 export interface IncomeTaxBreakdown {
 	readonly rate_0: TaxBreakdownItem;
 	readonly rate_20: TaxBreakdownItem;
 	readonly rate_40: TaxBreakdownItem;
 	readonly rate_45: TaxBreakdownItem;
-}
-
-export interface TaxBreakdownItem {
-	readonly tax: number;
-	readonly carry?: number;
 }
 
 export interface NationalInsuranceBreakdown {
