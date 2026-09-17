@@ -94,5 +94,15 @@ exports.TAX_SETTINGS = {
             threshold: 21000.0,
             rate: 0.06
         }
-    }
+    },
+    // Scotland 2026/27 (gov.scot Budget Jan 2026, gov.uk Scottish Income Tax).
+    // Published as £12,571–£16,537 etc. assuming standard PA; stored half-open.
+    scotland: [
+        { name: "starter", start: 12571.0, end: 16538.0, rate: 0.19 },
+        { name: "basic", start: 16538.0, end: 29527.0, rate: 0.2 },
+        { name: "intermediate", start: 29527.0, end: 43663.0, rate: 0.21 },
+        { name: "higher", start: 43663.0, end: 75001.0, rate: 0.42 },
+        { name: "advanced", start: 75001.0, end: 125141.0, rate: 0.45 },
+        { name: "top", start: 125141.0, end: -1, rate: 0.48 }
+    ]
 };

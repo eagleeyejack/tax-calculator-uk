@@ -41,5 +41,15 @@ export const TAX_SETTINGS: TaxSettings = {
 		plan_4: { threshold: 31395.0, rate: 0.09 },
 		plan_5: { threshold: 25000.0, rate: 0.0 },
 		postgraduate: { threshold: 21000.0, rate: 0.06 }
-	}
+	},
+	// Scotland 2024/25: advanced 45% band (£75,001–£125,140) introduced,
+	// top rate 48%. Lower thresholds as in 2025/26.
+	scotland: [
+		{ name: "starter", start: 12571.0, end: 15398.0, rate: 0.19 },
+		{ name: "basic", start: 15398.0, end: 27492.0, rate: 0.2 },
+		{ name: "intermediate", start: 27492.0, end: 43663.0, rate: 0.21 },
+		{ name: "higher", start: 43663.0, end: 75001.0, rate: 0.42 },
+		{ name: "advanced", start: 75001.0, end: 125141.0, rate: 0.45 },
+		{ name: "top", start: 125141.0, end: -1, rate: 0.48 }
+	]
 }

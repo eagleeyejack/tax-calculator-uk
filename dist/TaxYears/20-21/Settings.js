@@ -40,5 +40,14 @@ exports.TAX_SETTINGS = {
         plan_4: { threshold: 19390.0, rate: 0.09 },
         plan_5: { threshold: 25000.0, rate: 0.0 },
         postgraduate: { threshold: 21000.0, rate: 0.06 }
-    }
+    },
+    // Scotland 2020/21: starter–£14,585, basic–£25,158, intermediate–£43,430,
+    // higher 41%–£150,000, top 46%.
+    scotland: [
+        { name: "starter", start: 12500.0, end: 14586.0, rate: 0.19 },
+        { name: "basic", start: 14586.0, end: 25159.0, rate: 0.2 },
+        { name: "intermediate", start: 25159.0, end: 43431.0, rate: 0.21 },
+        { name: "higher", start: 43431.0, end: 150001.0, rate: 0.41 },
+        { name: "top", start: 150001.0, end: -1, rate: 0.46 }
+    ]
 };

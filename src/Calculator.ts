@@ -2,6 +2,8 @@ import {
 	TaxSettings,
 	StudentLoanPlans,
 	CalculatorOptions,
+	Region,
+	ScottishBand,
 	TaxRate,
 	IncomeTax,
 	IncomeTaxBreakdown,
@@ -26,6 +28,10 @@ const Calculator = (grossIncome: number, options: CalculatorOptions, taxYear: st
 	calculator.grossIncome = grossIncome
 	calculator.options = options
 	calculator.taxYear = taxSettings.year
+
+	const region: Region = options.region ?? "england-wales-ni"
+	calculator.region = region
+	const isScotland: boolean = region === "scotland"
 
 	/**
 	 * Age-related personal allowance additions were abolished in April 2016.
@@ -152,9 +158,32 @@ const Calculator = (grossIncome: number, options: CalculatorOptions, taxYear: st
 	}
 
 	/**
+	 * Scottish income tax for the selected year. Bands are defined on absolute
+	 * income, so personal allowance (after taper), blind allowance and pension
+	 * relief are applied as a window: [allowances, gross - pension].
+	 */
+	const getScottishBandTaxes = (): { name: string; rate: number; tax: number }[] => {
+		const bottom: number = getTotalAllowances()
+		const top: number = grossIncome - pensionAmount
+		return taxSettings.scotland.map((band: ScottishBand) => {
+			const bandEnd: number = band.end === -1 ? top : band.end
+			const taxableInBand: number = Math.max(0, Math.min(top, bandEnd) - Math.max(bottom, band.start))
+			return {
+				name: band.name,
+				rate: band.rate,
+				tax: getAmountRounded(taxableInBand * band.rate)
+			}
+		})
+	}
+
+	/**
 	 * Returns total income tax rounded to 2 decimal places
 	 */
 	const getTotalIncomeTax = (): number => {
+		if (isScotland) {
+			const total: number = getScottishBandTaxes().reduce((sum, band) => sum + band.tax, 0)
+			return getAmountRounded(total)
+		}
 		let incomeTaxBreakdown: IncomeTaxBreakdown = getIncomeTaxBreakdown()
 		let totalIncomeTax: number =
 			incomeTaxBreakdown.rate_0.tax +
@@ -354,8 +383,24 @@ const Calculator = (grossIncome: number, options: CalculatorOptions, taxYear: st
 			options.age >= taxSettings.nationalInsurance.pensionAge
 				? { rate_0: { tax: 0 }, rate_12: { tax: 0 }, rate_2: { tax: 0 } }
 				: niBreakdown
+		const scottishBands = getScottishBandTaxes()
+		const rUkBreakdown = getIncomeTaxBreakdown()
+		// Uniform per-band detail, region-correct in both regions.
+		const bands = isScotland
+			? scottishBands
+			: [
+					{ name: "basic", rate: 0.2, tax: rUkBreakdown.rate_20.tax },
+					{ name: "higher", rate: 0.4, tax: rUkBreakdown.rate_40.tax },
+					{ name: "additional", rate: 0.45, tax: rUkBreakdown.rate_45.tax }
+				]
+		// Legacy rUK buckets. For Scotland, paye carries the Scottish bands
+		// keyed by band name instead.
+		const paye: any = isScotland
+			? Object.fromEntries(scottishBands.map((band) => [band.name, { rate: band.rate, tax: band.tax }]))
+			: rUkBreakdown
 		return {
 			taxYear: taxSettings.year,
+			region,
 			netIncome: {
 				yearly: getTotalNetPayPerYear(),
 				monthly: getTotalNetPayPerMonth(),
@@ -363,7 +408,8 @@ const Calculator = (grossIncome: number, options: CalculatorOptions, taxYear: st
 				daily: getTotalNetPayPerDay()
 			},
 			personalAllowance: getPersonalAllowance(),
-			paye: getIncomeTaxBreakdown(),
+			paye,
+			bands,
 			nationalInsurance: displayNi,
 			studentLoan: {
 				plan: getStudentLoanPlanName(),

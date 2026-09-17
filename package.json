@@ -1,7 +1,7 @@
 {
 	"name": "tax-calculator-uk",
-	"version": "2.1.0",
-	"description": "UK income tax breakdown based on a yearly salary. Supports tax years 2017/18–2026/27 (England, Wales & Northern Ireland).",
+	"version": "2.2.0",
+	"description": "UK income tax breakdown based on a yearly salary. England, Wales, Northern Ireland & Scotland; tax years 2017/18–2026/27.",
 	"main": "./dist/Calculator.js",
 	"types": "./dist/Calculator.d.ts",
 	"files": ["dist"],

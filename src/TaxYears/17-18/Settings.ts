@@ -41,5 +41,12 @@ export const TAX_SETTINGS: TaxSettings = {
 		plan_4: { threshold: 17775.0, rate: 0.09 },
 		plan_5: { threshold: 25000.0, rate: 0.0 },
 		postgraduate: { threshold: 21000.0, rate: 0.06 }
-	}
+	},
+	// Scotland 2017/18: same rates as rUK, higher-rate threshold frozen at
+	// £43,000 (vs £45,000 in rUK).
+	scotland: [
+		{ name: "basic", start: 11500.0, end: 43001.0, rate: 0.2 },
+		{ name: "higher", start: 43001.0, end: 150001.0, rate: 0.4 },
+		{ name: "top", start: 150001.0, end: -1, rate: 0.45 }
+	]
 }

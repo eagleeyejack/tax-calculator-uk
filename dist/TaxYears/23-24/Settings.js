@@ -42,5 +42,15 @@ exports.TAX_SETTINGS = {
         plan_4: { threshold: 27660.0, rate: 0.09 },
         plan_5: { threshold: 25000.0, rate: 0.0 },
         postgraduate: { threshold: 21000.0, rate: 0.06 }
-    }
+    },
+    // Scotland 2023/24: higher 41%→42%, top 46%→47%, top threshold cut to
+    // £125,140. Lower bands frozen (starter–£14,732, basic–£25,688,
+    // intermediate–£43,632).
+    scotland: [
+        { name: "starter", start: 12570.0, end: 14733.0, rate: 0.19 },
+        { name: "basic", start: 14733.0, end: 25689.0, rate: 0.2 },
+        { name: "intermediate", start: 25689.0, end: 43633.0, rate: 0.21 },
+        { name: "higher", start: 43633.0, end: 125141.0, rate: 0.42 },
+        { name: "top", start: 125141.0, end: -1, rate: 0.47 }
+    ]
 };

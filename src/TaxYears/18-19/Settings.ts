@@ -41,5 +41,14 @@ export const TAX_SETTINGS: TaxSettings = {
 		plan_4: { threshold: 18330.0, rate: 0.09 },
 		plan_5: { threshold: 25000.0, rate: 0.0 },
 		postgraduate: { threshold: 21000.0, rate: 0.06 }
-	}
+	},
+	// Scotland 2018/19: the five-band system begins. Starter 19%–£13,850,
+	// basic 20%–£24,000, intermediate 21%–£43,430, higher 41%–£150,000, top 46%.
+	scotland: [
+		{ name: "starter", start: 11850.0, end: 13851.0, rate: 0.19 },
+		{ name: "basic", start: 13851.0, end: 24001.0, rate: 0.2 },
+		{ name: "intermediate", start: 24001.0, end: 43431.0, rate: 0.21 },
+		{ name: "higher", start: 43431.0, end: 150001.0, rate: 0.41 },
+		{ name: "top", start: 150001.0, end: -1, rate: 0.46 }
+	]
 }

@@ -4,7 +4,16 @@ export interface TaxSettings {
     readonly incomeTax: IncomeTax;
     readonly nationalInsurance: NationalInsurance;
     readonly studentLoan: StudentLoan;
+    readonly scotland: ScottishBand[];
 }
+/** A Scottish income tax band on absolute income (half-open: start inclusive, end exclusive, -1 = no upper limit). */
+export interface ScottishBand {
+    readonly name: string;
+    readonly start: number;
+    readonly end: number;
+    readonly rate: number;
+}
+export type Region = "england-wales-ni" | "scotland";
 export interface Allowance {
     readonly basic: number;
     readonly age_65_74: number;
@@ -50,6 +59,8 @@ export interface CalculatorOptions {
     studentLoanPlan: StudentLoanPlans;
     blind: boolean;
     pensionPercentage: number;
+    /** Defaults to "england-wales-ni". Set to "scotland" for Scottish income tax bands. */
+    region?: Region;
 }
 /**
  * Numeric values 0/1/2 are unchanged from v1 so existing callers keep working.

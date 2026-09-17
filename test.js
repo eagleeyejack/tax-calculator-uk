@@ -110,5 +110,42 @@ try { Calculator(30000, base(), "2030/31"); } catch (e) { threw = true; }
 console.log(threw ? "PASS unknown year throws" : "FAIL unknown year throws");
 if (!threw) fail++;
 
+// ---- Scotland ----
+const scot = (plan = 0) => ({ age: 30, studentLoanPlan: plan, blind: false, pensionPercentage: 0, region: "scotland" });
+
+// 26-27 Scotland £60k: 3967@19% + 12989@20% + 14136@21% + 16337@42% = 13181.63
+r = Calculator(60000, scot(), "2026/27").getTaxBreakdown();
+check("Scot 26-27 region", r.region === "scotland" ? 1 : 0, 1);
+check("Scot 26-27 bands", r.bands.length, 6);
+check("Scot 26-27 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13181.63);
+check("Scot 26-27 starter", r.paye.starter.tax, 753.73);
+check("Scot 26-27 net", r.netIncome.yearly, 43607.77);
+
+// 26-27 Scotland £30k: starter 753.73 + basic 2597.8 + intermediate 99.33
+r = Calculator(30000, scot(), "2026/27").getTaxBreakdown();
+check("Scot 26-27 £30k tax", r.bands.reduce((s, b) => s + b.tax, 0), 3450.86);
+check("Scot 26-27 £30k net", r.netIncome.yearly, 25154.74);
+
+// 22-23 Scotland £60k: 410.97 + 2191.20 + 3774.54 + 6698.17 = 13074.88
+r = Calculator(60000, scot(), "2022/23").getTaxBreakdown();
+check("Scot 22-23 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13074.88);
+check("Scot 22-23 net", r.netIncome.yearly, 41847.04);
+
+// 17-18 Scotland £44k (HRT £43k vs rUK £45k): 6300.20 + 399.60 = 6699.80
+r = Calculator(44000, scot(), "2017/18").getTaxBreakdown();
+check("Scot 17-18 tax", r.bands.reduce((s, b) => s + b.tax, 0), 6699.8);
+check("Scot 17-18 net", r.netIncome.yearly, 32999.88);
+
+// 24-25 Scotland £100k hits the advanced band: total 30763.35
+r = Calculator(100000, scot(), "2024/25").getTaxBreakdown();
+check("Scot 24-25 advanced", r.paye.advanced.tax, 11249.55);
+check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30763.35);
+
+// Default region stays England/Wales/NI with legacy paye buckets
+r = Calculator(60000, base()).getTaxBreakdown();
+check("default region", r.region === "england-wales-ni" ? 1 : 0, 1);
+check("EWN bands", r.bands.length, 3);
+check("EWN paye buckets", r.paye.rate_20 !== undefined ? 1 : 0, 1);
+
 if (fail) { console.log(`${fail} FAILURES`); process.exit(1); }
 console.log("ALL TESTS PASSED");

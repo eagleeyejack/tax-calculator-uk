@@ -7,6 +7,7 @@ Object.defineProperty(exports, "TAX_YEARS", { enumerable: true, get: function ()
 Object.defineProperty(exports, "DEFAULT_TAX_YEAR", { enumerable: true, get: function () { return TaxYears_1.DEFAULT_TAX_YEAR; } });
 Object.defineProperty(exports, "SUPPORTED_TAX_YEARS", { enumerable: true, get: function () { return TaxYears_1.SUPPORTED_TAX_YEARS; } });
 const Calculator = (grossIncome, options, taxYear = TaxYears_1.DEFAULT_TAX_YEAR) => {
+    var _a;
     const taxSettings = TaxYears_1.TAX_YEARS[taxYear];
     if (!taxSettings) {
         throw new Error(`Unknown tax year "${taxYear}". Supported years: ${TaxYears_1.SUPPORTED_TAX_YEARS.join(", ")}`);
@@ -15,6 +16,9 @@ const Calculator = (grossIncome, options, taxYear = TaxYears_1.DEFAULT_TAX_YEAR)
     calculator.grossIncome = grossIncome;
     calculator.options = options;
     calculator.taxYear = taxSettings.year;
+    const region = (_a = options.region) !== null && _a !== void 0 ? _a : "england-wales-ni";
+    calculator.region = region;
+    const isScotland = region === "scotland";
     /**
      * Age-related personal allowance additions were abolished in April 2016.
      * Kept for backward compatibility — always 0.
@@ -126,9 +130,31 @@ const Calculator = (grossIncome, options, taxYear = TaxYears_1.DEFAULT_TAX_YEAR)
         };
     };
     /**
+     * Scottish income tax for the selected year. Bands are defined on absolute
+     * income, so personal allowance (after taper), blind allowance and pension
+     * relief are applied as a window: [allowances, gross - pension].
+     */
+    const getScottishBandTaxes = () => {
+        const bottom = getTotalAllowances();
+        const top = grossIncome - pensionAmount;
+        return taxSettings.scotland.map((band) => {
+            const bandEnd = band.end === -1 ? top : band.end;
+            const taxableInBand = Math.max(0, Math.min(top, bandEnd) - Math.max(bottom, band.start));
+            return {
+                name: band.name,
+                rate: band.rate,
+                tax: (0, rounded_1.getAmountRounded)(taxableInBand * band.rate)
+            };
+        });
+    };
+    /**
      * Returns total income tax rounded to 2 decimal places
      */
     const getTotalIncomeTax = () => {
+        if (isScotland) {
+            const total = getScottishBandTaxes().reduce((sum, band) => sum + band.tax, 0);
+            return (0, rounded_1.getAmountRounded)(total);
+        }
         let incomeTaxBreakdown = getIncomeTaxBreakdown();
         let totalIncomeTax = incomeTaxBreakdown.rate_0.tax +
             incomeTaxBreakdown.rate_20.tax +
@@ -309,8 +335,24 @@ const Calculator = (grossIncome, options, taxYear = TaxYears_1.DEFAULT_TAX_YEAR)
         const displayNi = options.age >= taxSettings.nationalInsurance.pensionAge
             ? { rate_0: { tax: 0 }, rate_12: { tax: 0 }, rate_2: { tax: 0 } }
             : niBreakdown;
+        const scottishBands = getScottishBandTaxes();
+        const rUkBreakdown = getIncomeTaxBreakdown();
+        // Uniform per-band detail, region-correct in both regions.
+        const bands = isScotland
+            ? scottishBands
+            : [
+                { name: "basic", rate: 0.2, tax: rUkBreakdown.rate_20.tax },
+                { name: "higher", rate: 0.4, tax: rUkBreakdown.rate_40.tax },
+                { name: "additional", rate: 0.45, tax: rUkBreakdown.rate_45.tax }
+            ];
+        // Legacy rUK buckets. For Scotland, paye carries the Scottish bands
+        // keyed by band name instead.
+        const paye = isScotland
+            ? Object.fromEntries(scottishBands.map((band) => [band.name, { rate: band.rate, tax: band.tax }]))
+            : rUkBreakdown;
         return {
             taxYear: taxSettings.year,
+            region,
             netIncome: {
                 yearly: getTotalNetPayPerYear(),
                 monthly: getTotalNetPayPerMonth(),
@@ -318,7 +360,8 @@ const Calculator = (grossIncome, options, taxYear = TaxYears_1.DEFAULT_TAX_YEAR)
                 daily: getTotalNetPayPerDay()
             },
             personalAllowance: getPersonalAllowance(),
-            paye: getIncomeTaxBreakdown(),
+            paye,
+            bands,
             nationalInsurance: displayNi,
             studentLoan: {
                 plan: getStudentLoanPlanName(),
