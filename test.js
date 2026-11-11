@@ -147,9 +147,40 @@ check("Scot 24-25 advanced", r.paye.advanced.tax, 11250);
 check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30763.8);
 
 // Scotland with blind allowance: bands anchor to the effective allowance
+// PA 0, blind 3,250 -> taxable 126,750: advanced band full (62,710 @ 45% = 28,219.50), top 1,610 @ 48% = 772.80
 r = Calculator(130000, { age: 30, studentLoanPlan: 0, blind: true, pensionPercentage: 0, region: "scotland" }, "2026/27").getTaxBreakdown();
-check("Scot blind £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48851.45);
-check("Scot blind £130k net", r.netIncome.yearly, 76537.95);
+check("Scot blind £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48474.35);
+check("Scot blind £130k net", r.netIncome.yearly, 76915.05);
+
+// The Scottish top band starts where the rUK additional rate starts: the limit is on TAXABLE
+// income (Scottish Rate Resolution: "advanced rate ... up to a limit of £125,140"), so the
+// cumulative Scottish band widths must sum to the rUK additional-rate threshold in every year.
+const { TAX_YEARS } = require("./dist/Calculator");
+for (const [year, data] of Object.entries(TAX_YEARS)) {
+	const topStart = data.scot.filter(([, width]) => width > 0).reduce((s, [, width]) => s + width, 0);
+	check(`${year} Scottish top band starts at taxable`, topStart, data.at);
+}
+
+// 26-27 Scotland £125,140 (PA fully tapered, taxable 125,140): advanced band exactly full, no top-rate tax
+r = Calculator(125140, scot(), "2026/27").getTaxBreakdown();
+check("Scot 26-27 £125,140 advanced", r.paye.advanced.tax, 28219.5);
+check("Scot 26-27 £125,140 top", r.paye.top.tax, 0);
+check("Scot 26-27 £125,140 tax", r.bands.reduce((s, b) => s + b.tax, 0), 47701.55);
+
+// 26-27 Scotland £130k: top rate on 4,860 (130,000 - 125,140) @ 48% = 2,332.80
+r = Calculator(130000, scot(), "2026/27").getTaxBreakdown();
+check("Scot 26-27 £130k top", r.paye.top.tax, 2332.8);
+check("Scot 26-27 £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 50034.35);
+
+// 23-24 Scotland £130k: 410.78 + 2191.20 + 3774.54 + higher 94,048 @ 42% = 39,500.16; top 4,860 @ 47% = 2,284.20
+r = Calculator(130000, scot(), "2023/24").getTaxBreakdown();
+check("Scot 23-24 £130k top", r.paye.top.tax, 2284.2);
+check("Scot 23-24 £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48160.88);
+
+// 22-23 Scotland £160k: top band starts at taxable 150,000 (as rUK): 10,000 @ 46% = 4,600
+r = Calculator(160000, scot(), "2022/23").getTaxBreakdown();
+check("Scot 22-23 £160k top", r.paye.top.tax, 4600);
+check("Scot 22-23 £160k tax", r.bands.reduce((s, b) => s + b.tax, 0), 59728.8);
 
 // Default region stays England/Wales/NI with legacy paye buckets
 r = Calculator(60000, base()).getTaxBreakdown();
