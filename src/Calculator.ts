@@ -10,7 +10,12 @@ import { YEARS, DEFAULT_TAX_YEAR, SUPPORTED_TAX_YEARS } from "./years"
 
 export { YEARS as TAX_YEARS, DEFAULT_TAX_YEAR, SUPPORTED_TAX_YEARS }
 
-const r = (n: number): number => Math.round(n * 100) / 100
+// Round to the penny, half-up (half away from zero). With pence inputs and the table's
+// rates (at most four decimals) a true non-tie is at least 0.0001 pence from the half-way
+// point, so the 1e-6 pence nudge only absorbs binary float noise, which otherwise makes
+// an exact half-penny round down (185.50 x 19% = 35.245 -> 3524.4999999999995 -> 35.24).
+// It is not meant for inputs with more decimals or amounts beyond ~£10m.
+const r = (n: number): number => (n < 0 ? -1 : 1) * (Math.round(Math.abs(n) * 100 + 1e-6) / 100)
 
 const PLAN_NAMES = ["NO_PLAN", "PLAN_1", "PLAN_2", "PLAN_4", "PLAN_5", "POSTGRADUATE"]
 

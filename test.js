@@ -7,6 +7,11 @@ const check = (label, actual, expected) => {
 	if (!ok) fail++;
 	console.log(`${ok ? "PASS" : "FAIL"} ${label}: got ${actual}, want ${expected}`);
 };
+const checkExact = (label, actual, expected) => {
+	const ok = actual === expected;
+	if (!ok) fail++;
+	console.log(`${ok ? "PASS" : "FAIL"} ${label}: got ${actual}, want exactly ${expected}`);
+};
 
 const base = (plan = 0) => ({ age: 30, studentLoanPlan: plan, blind: false, pensionPercentage: 0 });
 
@@ -62,6 +67,21 @@ r = Calculator(200000, { age: 30, studentLoanPlan: 0, blind: false, pensionPerce
 check("Scot 200k 10% pension PA", r.personalAllowance, 0);
 check("Scot 200k 10% pension tax", r.bands.reduce((s, b) => s + b.tax, 0), 74034.35);
 check("Scot 200k 10% pension net", r.netIncome.yearly, 99955.05);
+
+// Half-penny amounts round half-up to the penny, through float noise:
+// Scotland £12,755.50 -> taxable 185.50 x 19% = 35.245 -> 35.25 (not 35.24)
+r = Calculator(12755.5, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 0, region: "scotland" }).getTaxBreakdown();
+checkExact("half-penny starter rounds up", r.paye.starter.tax, 35.25);
+// rUK £12,570.05 -> taxable 0.05 x 20% = 0.01
+r = Calculator(12570.05, base()).getTaxBreakdown();
+checkExact("half-penny basic rounds up", r.paye.rate_20.tax, 0.01);
+// NI: £12,570.0625 is not a valid input (pence), but 12,580.50 -> 10.50 x 8% = 0.84 exactly
+r = Calculator(12580.5, base()).getTaxBreakdown();
+checkExact("NI pence", r.nationalInsurance.rate_12.tax, 0.84);
+// Pence input through every band: Scotland £33,333.33 -> intermediate 3,807.33 x 21% = 799.5393 -> 799.54
+r = Calculator(33333.33, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 0, region: "scotland" }).getTaxBreakdown();
+checkExact("Scot £33,333.33 intermediate", r.paye.intermediate.tax, 799.54);
+check("Scot £33,333.33 tax", r.bands.reduce((s, b) => s + b.tax, 0), 4151.07);
 
 // State pension age: no employee NI
 r = Calculator(60000, { age: 66, studentLoanPlan: 0, blind: false, pensionPercentage: 0 }).getTaxBreakdown();
