@@ -15,12 +15,15 @@ const Calculator = (grossIncome, options, taxYear = years_1.DEFAULT_TAX_YEAR) =>
     }
     const region = (_a = options.region) !== null && _a !== void 0 ? _a : "england-wales-ni";
     const isScotland = region === "scotland";
-    // Effective tax-free amount: PA tapered £1 per £2 over £100k, plus blind allowance.
-    const allowance = (grossIncome > 100000 ? Math.max(0, year.pa - (grossIncome - 100000) / 2) : year.pa) +
-        (options.blind ? year.blind : 0);
     // Salary-sacrifice pension reduces taxable income; NI stays on gross.
     const pension = (grossIncome / 100) * options.pensionPercentage;
-    const taxable = Math.max(0, grossIncome - allowance - pension);
+    // The PA taper is on adjusted net income, which is net of pension contributions,
+    // so it is measured on income after the pension deduction, not on gross pay.
+    const adjustedIncome = grossIncome - pension;
+    // Effective tax-free amount: PA tapered £1 per £2 over £100k, plus blind allowance.
+    const allowance = (adjustedIncome > 100000 ? Math.max(0, year.pa - (adjustedIncome - 100000) / 2) : year.pa) +
+        (options.blind ? year.blind : 0);
+    const taxable = Math.max(0, adjustedIncome - allowance);
     // Slice taxable income through [width, rate] bands (width 0 = remainder).
     const slice = (bands) => {
         let rest = taxable;
