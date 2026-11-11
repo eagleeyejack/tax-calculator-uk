@@ -29,7 +29,7 @@ export const YEARS: Record<string, YearData> = {
 		pa: 12570, bb: 37700, at: 125140, blind: 3070,
 		ni: [0.08, 12570, 50270], penAge: 66,
 		sl: [24990, 27295, 31395, 25000, 21000, 0],
-		scot: [["starter", 2827, 0.19], ["basic", 12094, 0.2], ["intermediate", 16171, 0.21], ["higher", 31338, 0.42], ["advanced", 62710, 0.45], ["top", 0, 0.48]]
+		scot: [["starter", 2306, 0.19], ["basic", 11685, 0.2], ["intermediate", 17101, 0.21], ["higher", 31338, 0.42], ["advanced", 62710, 0.45], ["top", 0, 0.48]] // starter to 14,876, basic to 26,561
 	},
 	"2023/24": {
 		pa: 12570, bb: 37700, at: 125140, blind: 2870,
