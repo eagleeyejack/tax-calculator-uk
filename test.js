@@ -48,6 +48,21 @@ r = Calculator(60000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercen
 check("60k 5% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 10232);
 check("60k 5% pension net", r.netIncome.yearly, 43557.4);
 
+// PA taper is on income after the pension deduction (adjusted net income), not gross pay:
+// £110k with 10% pension -> £99k adjusted -> full PA 12,570; taxable 86,430
+r = Calculator(110000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10 }).getTaxBreakdown();
+check("110k 10% pension PA", r.personalAllowance, 12570);
+check("110k 10% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 27032);
+check("110k 10% pension net", r.netIncome.yearly, 110000 - 11000 - 27032 - 4210.6);
+r = Calculator(110000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10, region: "scotland" }).getTaxBreakdown();
+check("Scot 110k 10% pension PA", r.personalAllowance, 12570);
+check("Scot 110k 10% pension tax", r.bands.reduce((s, b) => s + b.tax, 0), 30282.05);
+// £200k with 10% pension -> £180k adjusted -> PA still 0
+r = Calculator(200000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10, region: "scotland" }).getTaxBreakdown();
+check("Scot 200k 10% pension PA", r.personalAllowance, 0);
+check("Scot 200k 10% pension tax", r.bands.reduce((s, b) => s + b.tax, 0), 74034.35);
+check("Scot 200k 10% pension net", r.netIncome.yearly, 99955.05);
+
 // State pension age: no employee NI
 r = Calculator(60000, { age: 66, studentLoanPlan: 0, blind: false, pensionPercentage: 0 }).getTaxBreakdown();
 check("66yo NI", r.nationalInsurance.rate_12.tax + r.nationalInsurance.rate_2.tax, 0);
