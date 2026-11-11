@@ -131,6 +131,11 @@ r = Calculator(60000, scot(), "2022/23").getTaxBreakdown();
 check("Scot 22-23 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13075.1);
 check("Scot 22-23 net", r.netIncome.yearly, 41846.82);
 
+// 23-24 Scotland £50k: intermediate band ends at 43,662 (17,974 wide): 410.78 + 2191.20 + 3774.54 + 6,338 @ 42% = 9038.48
+r = Calculator(50000, scot(), "2023/24").getTaxBreakdown();
+check("Scot 23-24 £50k intermediate", r.paye.intermediate.tax, 3774.54);
+check("Scot 23-24 £50k tax", r.bands.reduce((s, b) => s + b.tax, 0), 9038.48);
+
 // 17-18 Scotland £44k (HRT £43k vs rUK £45k): 6300 + 400 = 6700
 r = Calculator(44000, scot(), "2017/18").getTaxBreakdown();
 check("Scot 17-18 tax", r.bands.reduce((s, b) => s + b.tax, 0), 6700);
