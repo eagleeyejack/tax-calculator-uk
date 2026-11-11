@@ -31,7 +31,7 @@ exports.YEARS = {
         pa: 12570, bb: 37700, at: 125140, blind: 2870,
         ni: [0.115, 12570, 50270], penAge: 66, // blended 12% Apr-Dec, 10% Jan-Mar
         sl: [22015, 27295, 27660, 25000, 21000, 0],
-        scot: [["starter", 2162, 0.19], ["basic", 10956, 0.2], ["intermediate", 17944, 0.21], ["higher", 81508, 0.42], ["top", 0, 0.47]]
+        scot: [["starter", 2162, 0.19], ["basic", 10956, 0.2], ["intermediate", 17974, 0.21], ["higher", 81478, 0.42], ["top", 0, 0.47]] // intermediate to 43,662 as in 2022/23
     },
     "2022/23": {
         pa: 12570, bb: 37700, at: 150000, blind: 2600,
