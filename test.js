@@ -141,10 +141,17 @@ r = Calculator(44000, scot(), "2017/18").getTaxBreakdown();
 check("Scot 17-18 tax", r.bands.reduce((s, b) => s + b.tax, 0), 6700);
 check("Scot 17-18 net", r.netIncome.yearly, 32999.68);
 
-// 24-25 Scotland £100k hits the advanced band: total 30763.80
+// 24-25 Scotland £100k hits the advanced band: 438.14 + 2337 + 3591.21 + 13161.96 + 11250 = 30778.31
+// (2024/25 starter band ends at 14,876 and basic at 26,561: gov.scot "Scottish Income Tax: rates and bands 2024 to 2025")
 r = Calculator(100000, scot(), "2024/25").getTaxBreakdown();
+check("Scot 24-25 starter", r.paye.starter.tax, 438.14);
+check("Scot 24-25 basic", r.paye.basic.tax, 2337);
 check("Scot 24-25 advanced", r.paye.advanced.tax, 11250);
-check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30763.8);
+check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30778.31);
+
+// 24-25 Scotland £60k: 438.14 + 2337 + 3591.21 + 16,338 @ 42% = 13228.31
+r = Calculator(60000, scot(), "2024/25").getTaxBreakdown();
+check("Scot 24-25 £60k tax", r.bands.reduce((s, b) => s + b.tax, 0), 13228.31);
 
 // Scotland with blind allowance: bands anchor to the effective allowance
 // PA 0, blind 3,250 -> taxable 126,750: advanced band full (62,710 @ 45% = 28,219.50), top 1,610 @ 48% = 772.80
