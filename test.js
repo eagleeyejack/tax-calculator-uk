@@ -7,6 +7,11 @@ const check = (label, actual, expected) => {
 	if (!ok) fail++;
 	console.log(`${ok ? "PASS" : "FAIL"} ${label}: got ${actual}, want ${expected}`);
 };
+const checkExact = (label, actual, expected) => {
+	const ok = actual === expected;
+	if (!ok) fail++;
+	console.log(`${ok ? "PASS" : "FAIL"} ${label}: got ${actual}, want exactly ${expected}`);
+};
 
 const base = (plan = 0) => ({ age: 30, studentLoanPlan: plan, blind: false, pensionPercentage: 0 });
 
@@ -47,6 +52,94 @@ check("Postgrad £35k", Calculator(35000, base(5)).getTaxBreakdown().studentLoan
 r = Calculator(60000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 5 }).getTaxBreakdown();
 check("60k 5% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 10232);
 check("60k 5% pension net", r.netIncome.yearly, 43557.4);
+
+// PA taper is on income after the pension deduction (adjusted net income), not gross pay:
+// £110k with 10% pension -> £99k adjusted -> full PA 12,570; taxable 86,430
+r = Calculator(110000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10 }).getTaxBreakdown();
+check("110k 10% pension PA", r.personalAllowance, 12570);
+check("110k 10% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 27032);
+check("110k 10% pension net", r.netIncome.yearly, 110000 - 11000 - 27032 - 4210.6);
+r = Calculator(110000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10, region: "scotland" }).getTaxBreakdown();
+check("Scot 110k 10% pension PA", r.personalAllowance, 12570);
+check("Scot 110k 10% pension tax", r.bands.reduce((s, b) => s + b.tax, 0), 30282.05);
+// £200k with 10% pension -> £180k adjusted -> PA still 0
+r = Calculator(200000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10, region: "scotland" }).getTaxBreakdown();
+check("Scot 200k 10% pension PA", r.personalAllowance, 0);
+check("Scot 200k 10% pension tax", r.bands.reduce((s, b) => s + b.tax, 0), 74034.35);
+check("Scot 200k 10% pension net", r.netIncome.yearly, 99955.05);
+
+// The tapered PA is rounded UP to a whole pound. Income Tax Act 2007 s.35(2): the allowance "is
+// reduced by one-half of the excess" over £100,000; s.35(3): "If the amount of any allowance that
+// remains after the operation of subsection (2) would otherwise not be a multiple of £1, it is to
+// be rounded up to the nearest amount which is a multiple of £1."
+// https://www.legislation.gov.uk/ukpga/2007/3/section/35
+const sumBands = (x) => x.bands.reduce((s, b) => s + b.tax, 0);
+// £100,001: 12,569.50 remains -> 12,570; taxable 87,431: 7,540 + 49,731 @ 40% = 19,892.40
+r = Calculator(100001, base()).getTaxBreakdown();
+checkExact("100,001 PA rounds up to 12,570", r.personalAllowance, 12570);
+checkExact("100,001 higher band", r.paye.rate_40.tax, 19892.4);
+check("100,001 tax", sumBands(r), 27432.4);
+check("100,001 net", r.netIncome.yearly, 68557.98);
+// Scotland £100,001: advanced 25,001 @ 45% = 11,250.45 (was 11,250.68 on 25,001.50)
+r = Calculator(100001, { ...base(), region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 100,001 PA rounds up to 12,570", r.personalAllowance, 12570);
+checkExact("Scot 100,001 advanced", r.paye.advanced.tax, 11250.45);
+check("Scot 100,001 tax", sumBands(r), 30732.5);
+// £100,002: an even excess leaves a whole pound, nothing to round: 12,569
+r = Calculator(100002, base()).getTaxBreakdown();
+checkExact("100,002 PA", r.personalAllowance, 12569);
+check("100,002 tax", sumBands(r), 27433.2);
+// Pence: Scotland £100,003.20 -> 12,568.40 remains -> 12,569; advanced 25,004.20 @ 45% = 11,251.89
+r = Calculator(100003.2, { ...base(), region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 100,003.20 PA", r.personalAllowance, 12569);
+checkExact("Scot 100,003.20 advanced", r.paye.advanced.tax, 11251.89);
+// Odd only after the pension: £120,020 at 5% -> adjusted 114,019 -> 5,560.50 remains -> 5,561;
+// taxable 108,458: 7,540 + 70,758 @ 40% = 28,303.20
+r = Calculator(120020, { ...base(), pensionPercentage: 5 }).getTaxBreakdown();
+checkExact("120,020 5% pension PA", r.personalAllowance, 5561);
+check("120,020 5% pension tax", sumBands(r), 35843.2);
+// Scotland £115,100 at 7% -> adjusted 107,043 -> 9,048.50 remains -> 9,049; advanced 35,564 @ 45% = 16,003.80
+r = Calculator(115100, { ...base(), pensionPercentage: 7, region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 115,100 7% pension PA", r.personalAllowance, 9049);
+checkExact("Scot 115,100 7% pension advanced", r.paye.advanced.tax, 16003.8);
+// Just under the point where the PA is gone: £125,139 -> 0.50 remains -> 1; Scottish taxable 125,138,
+// advanced 62,708 @ 45% = 28,218.60 and nothing at the top rate
+r = Calculator(125139, { ...base(), region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 125,139 PA", r.personalAllowance, 1);
+checkExact("Scot 125,139 advanced", r.paye.advanced.tax, 28218.6);
+checkExact("Scot 125,139 top", r.paye.top.tax, 0);
+// £125,139.99 -> 0.005 remains -> 1; higher 87,438.99 @ 40% = 34,975.596 -> 34,975.60
+r = Calculator(125139.99, base()).getTaxBreakdown();
+checkExact("125,139.99 PA", r.personalAllowance, 1);
+checkExact("125,139.99 higher band", r.paye.rate_40.tax, 34975.6);
+r = Calculator(125140, base()).getTaxBreakdown();
+checkExact("125,140 PA", r.personalAllowance, 0);
+// Float noise must not lift a whole-pound allowance: £204,828 at 50% is 102,413.99999999999 in
+// binary; adjusted 102,414 -> exactly 11,363, not 11,364
+r = Calculator(204828, { ...base(), pensionPercentage: 50 }).getTaxBreakdown();
+checkExact("204,828 50% pension PA (float noise)", r.personalAllowance, 11363);
+// Blind allowance is added after the rounding; the personal allowance itself is still 12,570
+r = Calculator(100001, { ...base(), blind: true }).getTaxBreakdown();
+checkExact("blind 100,001 PA", r.personalAllowance, 12570);
+check("blind 100,001 tax", sumBands(r), 26132.4); // 7,540 + (100,001 - 15,820 - 37,700) @ 40%
+// An earlier year: 2019/20 (PA 12,500, gone at 125,000): 100,001 -> 12,500; 124,999 -> 1
+checkExact("19-20 100,001 PA", Calculator(100001, base(), "2019/20").getTaxBreakdown().personalAllowance, 12500);
+checkExact("19-20 124,999 PA", Calculator(124999, base(), "2019/20").getTaxBreakdown().personalAllowance, 1);
+
+// Half-penny amounts round half-up to the penny, through float noise:
+// Scotland £12,755.50 -> taxable 185.50 x 19% = 35.245 -> 35.25 (not 35.24)
+r = Calculator(12755.5, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 0, region: "scotland" }).getTaxBreakdown();
+checkExact("half-penny starter rounds up", r.paye.starter.tax, 35.25);
+// rUK £12,570.05 -> taxable 0.05 x 20% = 0.01
+r = Calculator(12570.05, base()).getTaxBreakdown();
+checkExact("half-penny basic rounds up", r.paye.rate_20.tax, 0.01);
+// NI: £12,570.0625 is not a valid input (pence), but 12,580.50 -> 10.50 x 8% = 0.84 exactly
+r = Calculator(12580.5, base()).getTaxBreakdown();
+checkExact("NI pence", r.nationalInsurance.rate_12.tax, 0.84);
+// Pence input through every band: Scotland £33,333.33 -> intermediate 3,807.33 x 21% = 799.5393 -> 799.54
+r = Calculator(33333.33, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 0, region: "scotland" }).getTaxBreakdown();
+checkExact("Scot £33,333.33 intermediate", r.paye.intermediate.tax, 799.54);
+check("Scot £33,333.33 tax", r.bands.reduce((s, b) => s + b.tax, 0), 4151.07);
 
 // State pension age: no employee NI
 r = Calculator(60000, { age: 66, studentLoanPlan: 0, blind: false, pensionPercentage: 0 }).getTaxBreakdown();
@@ -131,20 +224,63 @@ r = Calculator(60000, scot(), "2022/23").getTaxBreakdown();
 check("Scot 22-23 tax", r.bands.reduce((s, b) => s + b.tax, 0), 13075.1);
 check("Scot 22-23 net", r.netIncome.yearly, 41846.82);
 
+// 23-24 Scotland £50k: intermediate band ends at 43,662 (17,974 wide): 410.78 + 2191.20 + 3774.54 + 6,338 @ 42% = 9038.48
+r = Calculator(50000, scot(), "2023/24").getTaxBreakdown();
+check("Scot 23-24 £50k intermediate", r.paye.intermediate.tax, 3774.54);
+check("Scot 23-24 £50k tax", r.bands.reduce((s, b) => s + b.tax, 0), 9038.48);
+
 // 17-18 Scotland £44k (HRT £43k vs rUK £45k): 6300 + 400 = 6700
 r = Calculator(44000, scot(), "2017/18").getTaxBreakdown();
 check("Scot 17-18 tax", r.bands.reduce((s, b) => s + b.tax, 0), 6700);
 check("Scot 17-18 net", r.netIncome.yearly, 32999.68);
 
-// 24-25 Scotland £100k hits the advanced band: total 30763.80
+// 24-25 Scotland £100k hits the advanced band: 438.14 + 2337 + 3591.21 + 13161.96 + 11250 = 30778.31
+// (2024/25 starter band ends at 14,876 and basic at 26,561: gov.scot "Scottish Income Tax: rates and bands 2024 to 2025")
 r = Calculator(100000, scot(), "2024/25").getTaxBreakdown();
+check("Scot 24-25 starter", r.paye.starter.tax, 438.14);
+check("Scot 24-25 basic", r.paye.basic.tax, 2337);
 check("Scot 24-25 advanced", r.paye.advanced.tax, 11250);
-check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30763.8);
+check("Scot 24-25 £100k tax", r.bands.reduce((s, b) => s + b.tax, 0), 30778.31);
+
+// 24-25 Scotland £60k: 438.14 + 2337 + 3591.21 + 16,338 @ 42% = 13228.31
+r = Calculator(60000, scot(), "2024/25").getTaxBreakdown();
+check("Scot 24-25 £60k tax", r.bands.reduce((s, b) => s + b.tax, 0), 13228.31);
 
 // Scotland with blind allowance: bands anchor to the effective allowance
+// PA 0, blind 3,250 -> taxable 126,750: advanced band full (62,710 @ 45% = 28,219.50), top 1,610 @ 48% = 772.80
 r = Calculator(130000, { age: 30, studentLoanPlan: 0, blind: true, pensionPercentage: 0, region: "scotland" }, "2026/27").getTaxBreakdown();
-check("Scot blind £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48851.45);
-check("Scot blind £130k net", r.netIncome.yearly, 76537.95);
+check("Scot blind £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48474.35);
+check("Scot blind £130k net", r.netIncome.yearly, 76915.05);
+
+// The Scottish top band starts where the rUK additional rate starts: the limit is on TAXABLE
+// income (Scottish Rate Resolution: "advanced rate ... up to a limit of £125,140"), so the
+// cumulative Scottish band widths must sum to the rUK additional-rate threshold in every year.
+const { TAX_YEARS } = require("./dist/Calculator");
+for (const [year, data] of Object.entries(TAX_YEARS)) {
+	const topStart = data.scot.filter(([, width]) => width > 0).reduce((s, [, width]) => s + width, 0);
+	check(`${year} Scottish top band starts at taxable`, topStart, data.at);
+}
+
+// 26-27 Scotland £125,140 (PA fully tapered, taxable 125,140): advanced band exactly full, no top-rate tax
+r = Calculator(125140, scot(), "2026/27").getTaxBreakdown();
+check("Scot 26-27 £125,140 advanced", r.paye.advanced.tax, 28219.5);
+check("Scot 26-27 £125,140 top", r.paye.top.tax, 0);
+check("Scot 26-27 £125,140 tax", r.bands.reduce((s, b) => s + b.tax, 0), 47701.55);
+
+// 26-27 Scotland £130k: top rate on 4,860 (130,000 - 125,140) @ 48% = 2,332.80
+r = Calculator(130000, scot(), "2026/27").getTaxBreakdown();
+check("Scot 26-27 £130k top", r.paye.top.tax, 2332.8);
+check("Scot 26-27 £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 50034.35);
+
+// 23-24 Scotland £130k: 410.78 + 2191.20 + 3774.54 + higher 94,048 @ 42% = 39,500.16; top 4,860 @ 47% = 2,284.20
+r = Calculator(130000, scot(), "2023/24").getTaxBreakdown();
+check("Scot 23-24 £130k top", r.paye.top.tax, 2284.2);
+check("Scot 23-24 £130k tax", r.bands.reduce((s, b) => s + b.tax, 0), 48160.88);
+
+// 22-23 Scotland £160k: top band starts at taxable 150,000 (as rUK): 10,000 @ 46% = 4,600
+r = Calculator(160000, scot(), "2022/23").getTaxBreakdown();
+check("Scot 22-23 £160k top", r.paye.top.tax, 4600);
+check("Scot 22-23 £160k tax", r.bands.reduce((s, b) => s + b.tax, 0), 59728.8);
 
 // Default region stays England/Wales/NI with legacy paye buckets
 r = Calculator(60000, base()).getTaxBreakdown();

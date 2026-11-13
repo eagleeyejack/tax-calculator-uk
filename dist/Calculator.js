@@ -5,7 +5,12 @@ const years_1 = require("./years");
 Object.defineProperty(exports, "TAX_YEARS", { enumerable: true, get: function () { return years_1.YEARS; } });
 Object.defineProperty(exports, "DEFAULT_TAX_YEAR", { enumerable: true, get: function () { return years_1.DEFAULT_TAX_YEAR; } });
 Object.defineProperty(exports, "SUPPORTED_TAX_YEARS", { enumerable: true, get: function () { return years_1.SUPPORTED_TAX_YEARS; } });
-const r = (n) => Math.round(n * 100) / 100;
+// Round to the penny, half-up (half away from zero). With pence inputs and the table's
+// rates (at most four decimals) a true non-tie is at least 0.0001 pence from the half-way
+// point, so the 1e-6 pence nudge only absorbs binary float noise, which otherwise makes
+// an exact half-penny round down (185.50 x 19% = 35.245 -> 3524.4999999999995 -> 35.24).
+// It is not meant for inputs with more decimals or amounts beyond ~£10m.
+const r = (n) => (n < 0 ? -1 : 1) * (Math.round(Math.abs(n) * 100 + 1e-6) / 100);
 const PLAN_NAMES = ["NO_PLAN", "PLAN_1", "PLAN_2", "PLAN_4", "PLAN_5", "POSTGRADUATE"];
 const Calculator = (grossIncome, options, taxYear = years_1.DEFAULT_TAX_YEAR) => {
     var _a, _b, _c;
@@ -15,12 +20,20 @@ const Calculator = (grossIncome, options, taxYear = years_1.DEFAULT_TAX_YEAR) =>
     }
     const region = (_a = options.region) !== null && _a !== void 0 ? _a : "england-wales-ni";
     const isScotland = region === "scotland";
-    // Effective tax-free amount: PA tapered £1 per £2 over £100k, plus blind allowance.
-    const allowance = (grossIncome > 100000 ? Math.max(0, year.pa - (grossIncome - 100000) / 2) : year.pa) +
-        (options.blind ? year.blind : 0);
     // Salary-sacrifice pension reduces taxable income; NI stays on gross.
     const pension = (grossIncome / 100) * options.pensionPercentage;
-    const taxable = Math.max(0, grossIncome - allowance - pension);
+    // The PA taper is on adjusted net income, which is net of pension contributions,
+    // so it is measured on income after the pension deduction, not on gross pay.
+    const adjustedIncome = grossIncome - pension;
+    // PA is reduced by one-half of the income over £100k, and what remains is rounded UP to a
+    // whole pound (Income Tax Act 2007 s.35(2) and (3)): £100,001 keeps 12,570, not 12,569.50.
+    // The 1e-7 nudge only absorbs binary float noise in the subtraction above, which could
+    // otherwise lift a whole-pound allowance to the next pound. With pence inputs and a whole
+    // pensionPercentage a true part-pound is at least 0.00005 above the pound, so it is not moved.
+    const taperedPa = adjustedIncome > 100000 ? Math.max(0, Math.ceil(year.pa - (adjustedIncome - 100000) / 2 - 1e-7)) : year.pa;
+    // Effective tax-free amount: tapered PA plus blind allowance.
+    const allowance = taperedPa + (options.blind ? year.blind : 0);
+    const taxable = Math.max(0, adjustedIncome - allowance);
     // Slice taxable income through [width, rate] bands (width 0 = remainder).
     const slice = (bands) => {
         let rest = taxable;
