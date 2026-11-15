@@ -5,7 +5,12 @@ const years_1 = require("./years");
 Object.defineProperty(exports, "TAX_YEARS", { enumerable: true, get: function () { return years_1.YEARS; } });
 Object.defineProperty(exports, "DEFAULT_TAX_YEAR", { enumerable: true, get: function () { return years_1.DEFAULT_TAX_YEAR; } });
 Object.defineProperty(exports, "SUPPORTED_TAX_YEARS", { enumerable: true, get: function () { return years_1.SUPPORTED_TAX_YEARS; } });
-const r = (n) => Math.round(n * 100) / 100;
+// Round to the penny, half-up (half away from zero). With pence inputs and the table's
+// rates (at most four decimals) a true non-tie is at least 0.0001 pence from the half-way
+// point, so the 1e-6 pence nudge only absorbs binary float noise, which otherwise makes
+// an exact half-penny round down (185.50 x 19% = 35.245 -> 3524.4999999999995 -> 35.24).
+// It is not meant for inputs with more decimals or amounts beyond ~£10m.
+const r = (n) => (n < 0 ? -1 : 1) * (Math.round(Math.abs(n) * 100 + 1e-6) / 100);
 const PLAN_NAMES = ["NO_PLAN", "PLAN_1", "PLAN_2", "PLAN_4", "PLAN_5", "POSTGRADUATE"];
 const Calculator = (grossIncome, options, taxYear = years_1.DEFAULT_TAX_YEAR) => {
     var _a, _b, _c;
