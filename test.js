@@ -7,6 +7,11 @@ const check = (label, actual, expected) => {
 	if (!ok) fail++;
 	console.log(`${ok ? "PASS" : "FAIL"} ${label}: got ${actual}, want ${expected}`);
 };
+const checkExact = (label, actual, expected) => {
+	const ok = actual === expected;
+	if (!ok) fail++;
+	console.log(`${ok ? "PASS" : "FAIL"} ${label}: got ${actual}, want exactly ${expected}`);
+};
 
 const base = (plan = 0) => ({ age: 30, studentLoanPlan: plan, blind: false, pensionPercentage: 0 });
 
@@ -47,6 +52,76 @@ check("Postgrad £35k", Calculator(35000, base(5)).getTaxBreakdown().studentLoan
 r = Calculator(60000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 5 }).getTaxBreakdown();
 check("60k 5% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 10232);
 check("60k 5% pension net", r.netIncome.yearly, 43557.4);
+
+// PA taper is on income after the pension deduction (adjusted net income), not gross pay:
+// £110k with 10% pension -> £99k adjusted -> full PA 12,570; taxable 86,430
+r = Calculator(110000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10 }).getTaxBreakdown();
+check("110k 10% pension PA", r.personalAllowance, 12570);
+check("110k 10% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 27032);
+check("110k 10% pension net", r.netIncome.yearly, 110000 - 11000 - 27032 - 4210.6);
+r = Calculator(110000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10, region: "scotland" }).getTaxBreakdown();
+check("Scot 110k 10% pension PA", r.personalAllowance, 12570);
+check("Scot 110k 10% pension tax", r.bands.reduce((s, b) => s + b.tax, 0), 30282.05);
+// £200k with 10% pension -> £180k adjusted -> PA still 0; taxable 180,000: 37,700 @ 20% + 87,440 @ 40% + 54,860 @ 45% = 67,203
+r = Calculator(200000, { age: 30, studentLoanPlan: 0, blind: false, pensionPercentage: 10 }).getTaxBreakdown();
+check("200k 10% pension PA", r.personalAllowance, 0);
+check("200k 10% pension tax", r.paye.rate_20.tax + r.paye.rate_40.tax + r.paye.rate_45.tax, 67203);
+check("200k 10% pension net", r.netIncome.yearly, 200000 - 20000 - 67203 - 6010.6);
+
+// The tapered PA is rounded UP to a whole pound. Income Tax Act 2007 s.35(2): the allowance "is
+// reduced by one-half of the excess" over £100,000; s.35(3): "If the amount of any allowance that
+// remains after the operation of subsection (2) would otherwise not be a multiple of £1, it is to
+// be rounded up to the nearest amount which is a multiple of £1."
+// https://www.legislation.gov.uk/ukpga/2007/3/section/35
+const sumBands = (x) => x.bands.reduce((s, b) => s + b.tax, 0);
+// £100,001: 12,569.50 remains -> 12,570; taxable 87,431: 7,540 + 49,731 @ 40% = 19,892.40
+r = Calculator(100001, base()).getTaxBreakdown();
+checkExact("100,001 PA rounds up to 12,570", r.personalAllowance, 12570);
+checkExact("100,001 higher band", r.paye.rate_40.tax, 19892.4);
+check("100,001 tax", sumBands(r), 27432.4);
+check("100,001 net", r.netIncome.yearly, 68557.98);
+// Scotland £100,001: advanced 25,001 @ 45% = 11,250.45 (was 11,250.68 on 25,001.50)
+r = Calculator(100001, { ...base(), region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 100,001 PA rounds up to 12,570", r.personalAllowance, 12570);
+checkExact("Scot 100,001 advanced", r.paye.advanced.tax, 11250.45);
+check("Scot 100,001 tax", sumBands(r), 30732.5);
+// £100,002: an even excess leaves a whole pound, nothing to round: 12,569
+r = Calculator(100002, base()).getTaxBreakdown();
+checkExact("100,002 PA", r.personalAllowance, 12569);
+check("100,002 tax", sumBands(r), 27433.2);
+// Pence: Scotland £100,003.20 -> 12,568.40 remains -> 12,569; advanced 25,004.20 @ 45% = 11,251.89
+r = Calculator(100003.2, { ...base(), region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 100,003.20 PA", r.personalAllowance, 12569);
+checkExact("Scot 100,003.20 advanced", r.paye.advanced.tax, 11251.89);
+// Odd only after the pension: £120,020 at 5% -> adjusted 114,019 -> 5,560.50 remains -> 5,561;
+// taxable 108,458: 7,540 + 70,758 @ 40% = 28,303.20
+r = Calculator(120020, { ...base(), pensionPercentage: 5 }).getTaxBreakdown();
+checkExact("120,020 5% pension PA", r.personalAllowance, 5561);
+check("120,020 5% pension tax", sumBands(r), 35843.2);
+// Scotland £115,100 at 7% -> adjusted 107,043 -> 9,048.50 remains -> 9,049; advanced 35,564 @ 45% = 16,003.80
+r = Calculator(115100, { ...base(), pensionPercentage: 7, region: "scotland" }).getTaxBreakdown();
+checkExact("Scot 115,100 7% pension PA", r.personalAllowance, 9049);
+checkExact("Scot 115,100 7% pension advanced", r.paye.advanced.tax, 16003.8);
+// Just under the point where the PA is gone: £125,139 -> 0.50 remains -> 1 (the same in Scotland)
+checkExact("125,139 PA", Calculator(125139, base()).getTaxBreakdown().personalAllowance, 1);
+checkExact("Scot 125,139 PA", Calculator(125139, { ...base(), region: "scotland" }).getTaxBreakdown().personalAllowance, 1);
+// £125,139.99 -> 0.005 remains -> 1; higher 87,438.99 @ 40% = 34,975.596 -> 34,975.60
+r = Calculator(125139.99, base()).getTaxBreakdown();
+checkExact("125,139.99 PA", r.personalAllowance, 1);
+checkExact("125,139.99 higher band", r.paye.rate_40.tax, 34975.6);
+r = Calculator(125140, base()).getTaxBreakdown();
+checkExact("125,140 PA", r.personalAllowance, 0);
+// Float noise must not lift a whole-pound allowance: £204,828 at 50% is 102,413.99999999999 in
+// binary; adjusted 102,414 -> exactly 11,363, not 11,364
+r = Calculator(204828, { ...base(), pensionPercentage: 50 }).getTaxBreakdown();
+checkExact("204,828 50% pension PA (float noise)", r.personalAllowance, 11363);
+// Blind allowance is added after the rounding; the personal allowance itself is still 12,570
+r = Calculator(100001, { ...base(), blind: true }).getTaxBreakdown();
+checkExact("blind 100,001 PA", r.personalAllowance, 12570);
+check("blind 100,001 tax", sumBands(r), 26132.4); // 7,540 + (100,001 - 15,820 - 37,700) @ 40%
+// An earlier year: 2019/20 (PA 12,500, gone at 125,000): 100,001 -> 12,500; 124,999 -> 1
+checkExact("19-20 100,001 PA", Calculator(100001, base(), "2019/20").getTaxBreakdown().personalAllowance, 12500);
+checkExact("19-20 124,999 PA", Calculator(124999, base(), "2019/20").getTaxBreakdown().personalAllowance, 1);
 
 // State pension age: no employee NI
 r = Calculator(60000, { age: 66, studentLoanPlan: 0, blind: false, pensionPercentage: 0 }).getTaxBreakdown();

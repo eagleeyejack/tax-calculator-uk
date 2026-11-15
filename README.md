@@ -155,7 +155,7 @@ Scotland (starter / basic / intermediate / higher / advanced / top):
 | 2018/19 | 19% –13,850 | 20% –24,000 | 21% –43,430 | 41% –150,000 | — | 46% |
 | 2017/18 | — | 20% –43,000 | — | 40% –150,000 | — | 45% |
 
-Personal allowance tapers £1 per £2 over £100,000 in all nations and years (fully gone at £125,140 from 2021/22; £125,000 in 2019/20–2020/21; £123,000 in 2017/18; £121,850 in 2018/19).
+Personal allowance tapers £1 per £2 over £100,000 of income after the pension deduction, in all nations and years (fully gone at £125,140 from 2021/22; £125,000 in 2019/20–2020/21; £123,000 in 2017/18; £121,850 in 2018/19). A tapered allowance that is not a whole pound is rounded up to the next pound ([Income Tax Act 2007 s.35(3)](https://www.legislation.gov.uk/ukpga/2007/3/section/35)): £100,001 keeps £12,570.
 
 ## Limitations
 
